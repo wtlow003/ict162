@@ -1,2 +1,25 @@
-# ICT162 Notes
-ICT162 Object Oriented Programming in SUSS
+# Introduction to Object-Oriented Programming
+
+
+## Encapsulation
+
+
+## Object Composition
+
+
+## Inheritance
+
+
+## Polymorphism
+
+
+## Defining Classes
+
+### Defining Classes with Object Composition
+
+```python
+class <className><(superClass)>:
+    <body>
+```
+
+###
