@@ -83,7 +83,7 @@ class ShoppingCart:
         return '\n'.join([str(c) for c in self._cart_items])
 
     def __str__(self):
-        return f"{self.customer_name} \n{self.cart_str()} \n{self.total_cost()}"
+        return f"{self._customer_name} \n{self.cart_str()} \n{self.total_cost()}"
 
 if __name__ == '__main__':
     p1 = Product('1', "A bar of Hershey's Chocolate", 4.99)
@@ -114,3 +114,10 @@ if __name__ == '__main__':
     print(s1.search_in_cart('3'))
     print(s1.search_in_cart('4'))
     print(s1.search_in_cart('5'))
+    # remove non-exisitng item from the cart
+    print(s1.remove_from_cart('6'))
+    print('\n')
+    print(s1)
+    print('\n')
+    s1.remove_from_cart('1')
+    print(s1)
