@@ -158,14 +158,15 @@ class Member:
         # TODO: check logic for outstanding fines
         # TODO: check type of exception to raise
         if self._amount_owed > 0:
-            raise LibraryException(f"You have ${self._amount_owed:.2f} outstanding fines. "
-                                   "Do you want wish to pay your fines now? (y/n): ")
+            raise LibraryPaymentException(self._amount_owed, f"You have ${self._amount_owed:.2f} "
+                                          "outstanding fines. Do you want wish to pay your fines now? (y/n): ")
 
         loan = Loan(item_copy, date_borrowed)       # creating the loan
         self._loans.append(loan)        # adding to the member's loans
         item_copy.available = False     # setting item to unavailable
         return True
 
+    # TODO: check the renew procedure -> NOT WORKING
     def renew(self, title: str, renew_date: datetime) -> bool:
         """Method to allow member to renew the due date of the loaned item
 
@@ -185,10 +186,13 @@ class Member:
             raise LibraryException(f"There is no loan recorded for {title}")
         if not present_loans and past_loans:
             raise LibraryException(f"Item has been returned on {matched_loans.return_date}")
-        if matched_loans and matched_loans.due_date < renew_date:
+        if matched_loans and (matched_loans.due_date < renew_date):
+            renew_date = renew_date.strftime('%d %b %Y')
+            due_date = matched_loans.due_date.strftime('%d %b %Y')
             raise LibraryException(
-                f"Renewal date: {renew_date} exceed due date: {matched_loans.due_date}")
-        return matched_loans.renew(renew_date)
+                f"Date of renewal on {renew_date} exceed the existing due date on {due_date}")
+        matched_loans.renew(renew_date)
+        return True
 
     def return_item(self, title: str, return_date: datetime) -> bool:
         """Method to allow members to return the item that they loaned
@@ -230,16 +234,18 @@ class Member:
             change (float): change if the amount paid exceed amount owed, default
             to [0]
         """
-        if amount < 0:
+        if amount <= 0:
             raise LibraryPaymentException(amount,
-                                          f"You owed ${self._amount_owed}. "
-                                          "Please pay an amount more than $0.")
+                                          f"You owed ${self._amount_owed:.2f}. "
+                                          f"Please pay an amount more than ${amount:.0f}.")
         # if you paid < owed, change = 0
         # if paid == owed, change = 0
         # if paid > owed, change > 0
         change = amount - self._amount_owed if amount > self._amount_owed else 0
         # making the adjustment to outstanding fines
-        self._amount_owed -= amount
+        # the maximum payment is completely paying the fines, `_amount_owed` == 0
+        # ensures that you only pay until the maximum allowable
+        self._amount_owed -= (amount - change)
         return change
 
     def loan_str(self, loans: list = None) -> str:
@@ -270,7 +276,7 @@ class Member:
                 f"\n{'No past loans' if not past_loans else self.loan_str(past_loans)}"
                 f"\nPresent loans:"
                 f"\n{'No outstanding loans' if not present_loans else self.loan_str(present_loans)}"
-                f"\nOutstanding loans: {len(present_loans)}\n")
+                f"\nOutstanding loans: {self.count_current_loan()}\n")
 
 
 class JuniorMember(Member):
@@ -364,17 +370,15 @@ class Library:
             copy_items = '\n'.join([str(copy) for copy in copy_item_list])
         else:
             copy_items = '\n'.join([str(copy) for copy in self._copy_items])
-        return (f"{copy_items}")
+        return f"{copy_items}"
 
     def member_str(self) -> str:
         members = '\n'.join([str(mem) for mem in self._members.values()])
-        return ("Members\n"
-                f"{members}")
+        return f"{members}"
 
     def item_str(self) -> str:
         items = '\n'.join([str(item) for item in self._items.values()])
-        return ("Items\n"
-                f"{items}\n")
+        return f"{items}\n"
 
     def __str__(self) -> str:
         return (f"{self.item_str()}"
@@ -387,7 +391,173 @@ class LibraryApplication:
     """
 
     def __init__(self, library: Library):
+        """
+        """
         self._library = library
+
+    def date_check(self, date_type: str):
+        """Retrieve user's date input and run a format validity check
+
+        Args:
+            date_type (str): Indicate what kind of date we are checking for
+                >>> 'renew': checking for renewal date
+
+        Return:
+            requested_date (datetime): Return the user inputted date that pass
+                the format check
+        """
+        while True:
+            requested_date = input(f"Enter {date_type} date in dd/mm/yyyy: ")
+            date_format = "%d/%m/%Y"
+            try:
+                requested_date = datetime.strptime(requested_date, date_format)
+                break
+            except ValueError:
+                print(f"{requested_date} is not in the format dd/mm/yyyy")
+        return requested_date
+
+    def option_1(self):
+        """Allow users to borrow items through available copy ids
+        """
+        member_id = input("Enter member id: ")
+
+        # Check if member id is valid
+        member = self._library.search_member(member_id.upper())
+        if member is None:
+            print("Invalid member id")
+        else:
+            print(
+                f"Current number of loans: {member.count_current_loan()} Quota: {member.get_loan_quota()}")
+
+            if member.quota_reached():
+                print("Quota reached. No more loan allowed")
+            else:
+                borrow_date = self.date_check('borrow')
+
+                # while member.count_current_loan() < member.get_loan_quota():
+                while not member.quota_reached():
+                    try:
+                        # Display all the available items in the library
+                        available_items = self._library.get_available_copy_items()
+                        available_items_ids = [avail.copy_id for avail in available_items]
+                        print("Available items")
+                        print(self._library.copy_item_str(available_items))
+
+                        # Get user option for items to borrow, else exit current menu option
+                        copy_item_choice = input("Enter the copy id or 0 to end: ")
+
+                        if int(copy_item_choice) in available_items_ids:
+                            item_copy = self._library.search_copy_item(int(copy_item_choice))
+                            member.borrow_item(item_copy, borrow_date)
+                            print(f"Sucessfully borrowed {item_copy.item.title}")
+                        elif copy_item_choice == '0':
+                            break
+                        else:
+                            print("Invalid copy id - does not match available items")
+                    except LibraryPaymentException as pe:
+                        # TODO: work on if people press other than y/n
+                        payment_choice = input(pe)
+                        if payment_choice.lower() == 'y':
+                            # make the deduct from amount owed, assume full amount paid
+                            member.pay(member.amount_owed)
+                            member.borrow_item(item_copy, borrow_date)
+                            print(f"Sucessfully borrowed {item_copy.item.title}")
+                        elif payment_choice.lower() == 'n':
+                            break
+                    except ValueError:
+                        print(f"{copy_item_choice} is not a valid item copy choice")
+                # TODO: think of how to use `Member` quota exception
+                if member.quota_reached():
+                    print("Loan quota reached")
+            print(member)
+
+    # TODO: implement the renewal class
+    def option_2(self):
+        """Allow users to renew items through title
+        """
+        member_id = input("Enter member id: ")
+
+        # Check if member id is valid
+        member = self._library.search_member(member_id.upper())
+        try:
+            if member is None:
+                print("Invalid member id")
+            else:
+                title = input("Enter title: ")
+                renew_date = self.date_check('renew')
+                # title check
+                loan = member.search_loan_for(title)
+                if loan and not loan.return_date:
+                    # use Member's `renew` method to raise exceptions
+                    member.renew(title, renew_date)  # renew the item
+                    print(f"Successfully renewed {title}")
+                elif loan and loan.return_date:
+                    print("Item has been returned on "
+                          f"{loan.return_date.strftime('%d %b %Y')}")
+                else:
+                    print(f"There is no loan recorded for {title}")
+        except LibraryException as e:
+            print(e)
+        print(member)
+
+    def option_3(self):
+        member_id = input("Enter member id: ")
+
+        # Check if the member is valid
+        member = self._library.search_member(member_id.upper())
+        try:
+            if not member:
+                # TODO: see if we need to standardize the rest of the output
+                print("Invalid member id")
+            else:
+                return_date = self.date_check('return')
+                # Check the number of loans by the member -> use as the breaking point
+                # If not no more current loans
+                while member.count_current_loan() > 0:
+                    title = input("Enter title or <ENTER> to end: ")
+                    if title:
+                        # check for loan
+                        loan = member.search_loan_for(title)
+                        if loan and not loan.return_date:
+                            member.return_item(title, return_date)
+                            print(f"Successfuly returned {title}")
+                        elif loan and loan.return_date:
+                            print("Item has been returned on "
+                                  f"{loan.return_date.strftime('%d %b %Y')}")
+                        else:
+                            print(f"There is no loan recorded for {title}")
+                    else:
+                        break
+                if member.count_current_loan() == 0:
+                    print("No more outstanding loans")
+        except LibraryException as e:
+            print(e)
+        # Display member's info for verification
+        print(member)
+
+    def option_4(self):
+        member_id = input("Enter member id: ")
+
+        # Check if the member is valid
+        member = self._library.search_member(member_id.upper())
+        try:
+            if not member:
+                # TODO: see if we need to standardize the rest of the output
+                print("Invalid member id")
+            else:
+                while True:
+                    amount = input("Enter amount: ")
+                    if amount.isdigit():
+                        break
+                    else:
+                        print(f"{amount} is not a valid amount")
+                # Making the payment reflect for the member
+                change = member.pay(float(amount))
+                print(f"Sucessfully paid ${amount}. Current balance: ${member.amount_owed:.2f}")
+                if change:
+                    print(f"Your change: ${change:.2f}")
+        except LibraryPaymentException as pe:
+            print(pe)
 
     # Print menu options
     def menu(self):
@@ -417,77 +587,6 @@ class LibraryApplication:
 
         except ValueError:
             print(f"{selected_option} is not a valid menu option")
-
-    def option_1(self):
-        """Allow users to borrow items through available copy ids
-        """
-        member_id = input("Enter member id: ")
-
-        # Check if member id is valid
-        member = self._library.search_member(member_id.upper())
-        if member is None:
-            print("Invalid member id")
-        else:
-            print(
-                f"Current number of loans: {member.count_current_loan()} Quota: {member.get_loan_quota()}")
-
-            # Loop until member enters correct date format for borrowing
-            while True:
-                borrow_date = input("Enter borrow date in dd/mm/yyyy: ")
-                date_format = "%d/%m/%Y"
-                try:
-                    borrow_date = datetime.strptime(borrow_date, date_format)
-                    break
-                except ValueError:
-                    print(f"{borrow_date} is not in the format dd/mm/yyyy")
-
-            while member.count_current_loan() < member.get_loan_quota():
-                # Display all the available items in the library
-                available_items = self._library.get_available_copy_items()
-                available_items_ids = [avail.copy_id for avail in available_items]
-                print(self._library.copy_item_str(available_items))
-
-                # Get user option for items to borrow, else exit current menu option
-                copy_item_choice = input("Enter the copy id or 0 to end: ")
-
-                if int(copy_item_choice) in available_items_ids:
-                    item_copy = self._library.search_copy_item(int(copy_item_choice))
-                    member.borrow_item(item_copy, borrow_date)
-                elif copy_item_choice == '0':
-                    break
-                else:
-                    print("Invalid copy id - does not match available items")
-
-    def option_2(self):
-        """Allow users to renew items through title
-        """
-        member_id = input("Enter member id: ")
-        title = input("Enter title: ")
-
-        # Check if member id is valid
-        member = self._library.search_member(member_id.upper())
-        if member is None:
-            print("Invalid member id")
-        else:
-            while True:
-                renew_date = input("Enter renew date in dd/mm/yyyy: ")
-                date_format = "%d/%m/%Y"
-                try:
-                    renew_date = datetime.strptime(renew_date, date_format)
-                    break
-                except ValueError:
-                    print(f"{renew_date} is not in the format dd/mm/yyyy")
-
-            # TODO: check if title exists within the member's loan
-            member = self._library.search_member(member_id)
-            loan = member.search_loan_for(title)
-            # check if the loan is past or present loan
-            if loan is not None:
-                if loan.return_date is None:
-                    print(f"Item has been returned on {loan.return_date}")
-                else:
-                    print("Sucessfully renewed {title}")
-            print("There is no loan recorded for {title}")
 
 
 def populated_items():
@@ -524,7 +623,24 @@ def populated_items():
     return members, items, item_copies
 
 
-def initalise_library(library):
+def initialise_library(members, items, item_copies, library):
+
+    print("*** Start initialising library ***\n")
+
+    # Adding the items, item_copies, members into the library
+    # Registering the members
+    for member in members:
+        library.register_member(member)
+
+    # Adding the items to the library
+    for item in items:
+        library.add_item(item)
+
+    # Adding the copies of the items to the library
+    for item in items:
+        copies = item_copies[item.title]
+        for _ in range(copies):
+            library.add_copy_item(item)
 
     # Key members_id and actual member object
     john_id = 'S123'
@@ -556,12 +672,8 @@ def initalise_library(library):
     item_copy = library.search_copy_item(6)
     john.return_item(item_copy.item.title, datetime(2021, 3, 17))
     mary.renew('Powerpoint Presentation Tips', datetime(2021, 3, 5))
-    # TODO: remove this test later on
-    # mary.renew('Hello Panda', datetime(2021, 3, 5))
-    # print(f"{library.member_str()}\n")
 
     # print("John data after paying fines and he receives change $1.50")
-    # TODO: ensure that member class's `pay` can work
     john.pay(2.00)
     # print(john)
 
@@ -575,8 +687,7 @@ def initalise_library(library):
     mary.return_item(item_copy.item.title, datetime(2021, 3, 17))
 
     # print(mary)
-    # print("*** Done initialising library ***\n")
-    #
+    print("*** Done initialising library ***\n")
     # print("******* Library Test Data")
     # print(library)
 
@@ -593,22 +704,9 @@ def main():
     # Retrieving the information required to populate the Library class
     members, items, item_copies = populated_items()
 
-    # Adding the items, item_copies, members into the library
-    # Registering the members
-    for member in members:
-        library.register_member(member)
-
-    # Adding the items to the library
-    for item in items:
-        library.add_item(item)
-
-    # Adding the copies of the items to the library
-    for item in items:
-        copies = item_copies[item.title]
-        for _ in range(copies):
-            library.add_copy_item(item)
-
-    library = initalise_library(library)
+    # Initilising the library with relevant information and sequence of events
+    library = initialise_library(members, items, item_copies, library)
+    # Generating menu with initialised Library class object
     menu = LibraryApplication(library)
 
     while True:
