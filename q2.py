@@ -13,87 +13,88 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
 
 
+# Q2(A)
 class Item(ABC):
     """An abstract superclass to represent one item in a library.
 
     Attributes:
-        loan_duration (int): Loan duration for an item in the library,
+        LOAN_DURATION (int): Loan duration for an item in the library,
             default to [14].
 
     """
     _LOAN_DURATION: int = 14
 
     def __init__(self, title: str, year_published: int, cost: float):
-        """Constructs and initialises all necessary attributes for the Item
-        superclass.
-
-        The `__init__` method initialises three attributes.
+        """The `__init__` method initialises three attributes.
 
         Args:
-            title (str): Title of the item
-            year_published (int): Published year of the item
-            cost (float): Actual cost of the item
+            title: Title of the item
+            year_published: Published year of the item
+            cost: Actual cost of the item
+
         """
         self._title = title
         self._year_published = year_published
-        self._cost = cost
+        self._cost = float(cost)
 
     @property
     def title(self) -> str:
-        """The title of the item.
+        """Title of the item.
 
         :getter: Return the title of the item
         :rtype: str
+
         """
         return self._title
 
     @property
     def year_published(self) -> int:
-        """The year of the publishing of the item.
+        """Year of the item published.
 
-        :getter: Return the item's year of publishing
+        :getter: Return the item's year of published
         :rtype: int
+
         """
         return self._year_published
 
     @property
     def cost(self) -> float:
-        """The cost of the item.
+        """Cost of the item.
 
         :getter: Return the cost of the item
         :rtype: float
+
         """
         return self._cost
 
     @classmethod
     def get_loan_duration(cls) -> int:
-        """Return the class default loan duration for items in a library
+        """Return the class's default `LOAN_DURATION` for items in a library
         """
         return cls._LOAN_DURATION
 
     @classmethod
     def set_loan_duration(cls, new_duration: int):
-        """Set the new default loan duration for items in a library
+        """Set the new default `LOAN_DURATION` for items in a library
         """
         cls._LOAN_DURATION = new_duration
 
     @abstractmethod
     def get_admin_charge(self) -> float:
-        """Return the default adminstrative charges, or compute if any.
-        """
+        """Return the default adminstrative charges, or compute if any."""
         pass
 
     @abstractmethod
     def get_fines_per_day(self) -> float:
-        """
-        Return the fines incurred per day if exceeded the due date.
-        """
+        """Return the fines incurred per day if exceeded the due date."""
         pass
 
     def lost_charges(self) -> float:
-        """
-        Compute the lost charges
-        based on `get_admin_charge()` + cost of item, `self._cost`
+        """Return the computed the lost charges
+
+        The lost charge can be computed as:
+            `lost_charges` = `get_admin_charge()` + `cost`
+
         """
         return self.get_admin_charge() + self._cost
 
@@ -101,28 +102,25 @@ class Item(ABC):
         return f"{self._title} {self._year_published} Cost: ${self._cost:.2f}"
 
 
+# Q2(B)(i)
 class Book(Item):
     """A class to represent a book in the library.
 
-    The Book class inherit the instance variables from the parent Item class,
-    and also introduce `_authors` as an additional instance variable.
+    The Book class inherit instance variables from the parent Item class,
+    with `authors` as an additional instance variable.
 
-    Example:
+    Examples:
         >>> book = Book('ICT162', 2019, 19.90, ['SUSS'])
     """
 
     def __init__(self, title: str, year_published: int, cost: float, authors: list):
-        """Constructs and initialises all necessary attributes for the
-        inherited subclass object of Item class.
-
-        The `__init__` method initialises three (superclass) + 1 (subclass)
-        instance attributes.
+        """The `__init__` method initialises four instance attributes.
 
         Args:
-            title (str): Title of the item
-            year_published (int): Published year of the item
-            cost (float): Actual cost of the item
-            authors (list): A list of strings containing the author's names
+            title: Title of the item
+            year_published: Published year of the item
+            cost: Actual cost of the item
+            authors: A list of strings containing the author's names
         """
         super().__init__(title, year_published, cost)
         self._authors = authors
@@ -139,10 +137,10 @@ class Book(Item):
             `admin_charge` = (10 - (`this_year` - `year_published`)) / 10
 
         Return:
-            admin_charge (float): The percentage in decimal based on `year_published`.
+            admin_charge: The percentage in decimal based on `year_published`.
         """
         year_diff_from_curr = datetime.now().year - self._year_published
-        # If books older than 9 years from year pub using today's date
+        # Books older than 9 years since year published has a fixed rate of 10%
         if year_diff_from_curr > 9:
             admin_charge = 0.10
         else:
@@ -150,8 +148,7 @@ class Book(Item):
         return admin_charge
 
     def get_fines_per_day(self) -> float:
-        """Return the fines per day for exceeding the due date
-        """
+        """Return the fines per day for exceeding the due date"""
         return 0.25
 
     def __str__(self) -> str:
@@ -159,6 +156,7 @@ class Book(Item):
         return f"{super().__str__()} By {authors}"
 
 
+# Q2(B)(i)
 class Media(Item):
     """A class to represent a media in the library.
 
@@ -166,34 +164,35 @@ class Media(Item):
     parent Item class.
 
     Attributes:
-        loan_duration (int): The loan duration set for media item,
+        loan_duration: The loan duration set for media item,
             default to [3].
 
-    Example:
+    Examples:
         >>> media = Media('ICT162', 2019, 19.90)
+
     """
-    _LOAN_DURATION = 3
+    _LOAN_DURATION: int = 3
 
     def get_admin_charge(self) -> float:
-        """
-        For media item, adminstrative charge is set at 1.5x of the cost price.
+        """Compute adminstrative charge, which is set at 1.5x of the cost price
+        for Media class.
         """
         return 1.5 * self._cost
 
     def get_fines_per_day(self) -> float:
-        """Return the fines per day for exceeding the due date
-        """
+        """Return the fines per day for exceeding the due date"""
         return 2.50
 
 
+# Q2(C)
 class ItemCopy:
     """A class to represent a copy of the item in the library.
 
-    The `ItemCopy` can be defined as a copy of a book or media that a member
-    can borrow from the library.
+    The `ItemCopy` class can be defined as a copy of a book or media that a
+    member can borrow from the library.
 
     Attributes:
-        NEXT_ID (int): The id assigned to each copy of the item available,
+        NEXT_ID: The id assigned to each copy of the item available,
             starting from 1 and auto-increasing with each new `ItemCopy`
             instantiated.
 
@@ -202,53 +201,51 @@ class ItemCopy:
         >>> media = Media('ICT162', 2019, 19.90)
         >>> item_copy = ItemCopy(book)
         >>> item_copy = ItemCopy(media)
+
     """
     _NEXT_ID: int = 1
 
     def __init__(self, item: Item):
-        """Constructs and initialises all necessary attributes for the
-        `ItemCopy` class.
-
-        The `__init__` method initialises four attributes.
+        """The `__init__` method initialises four attributes.
 
         Args:
-            title (str): Title of the item
-            year_published (int): Published year of the item
-            cost (float): Actual cost of the item
-            authors (list): A list of strings containing the author's names
+            item: Item that exist in the library's collection
+
         """
         self._item = item
+        # :int: Each item copy has a unique copy id upon instantiating
         self._copy_id = self._NEXT_ID
+        # :bool: True when no one borrowed, False if otherwise.
         self._available = True
-        # increase next_id by 1, everytime we instantiate a ItemCopy instance
+        # Increase next_id by 1, everytime we instantiate a ItemCopy instance
         type(self)._NEXT_ID += 1
 
     @property
     def item(self) -> Item:
-        """The item that we are making a copy of
+        """Item that we are making a copies of
 
         :getter: Return the item we are making a copy of
-        :rtype: Item
+
         """
         return self._item
 
     @property
     def copy_id(self) -> int:
-        """The copy id of the item copy that we are have instantiated
+        """Copy id of the item copy that we are have instantiated
 
         :getter: Return the copy id of the item copy
-        :rtype: int
+
         """
         return self._copy_id
 
     @property
     def available(self) -> bool:
-        """The status of the item copy, where either available (True) or
-        unavailable (False)
+        """Status of the item copy, True when available, False if otherwise.
 
         :getter: Return the availability status of the item copy
-        :setter: Set the availabity status of the item copy
-        :rtype: bool
+        :setter: Set the availabity status of the item copy, True if available
+            (not borrowed), False if otherwise
+
         """
         return self._available
 
@@ -262,52 +259,63 @@ class ItemCopy:
                 f"Available: {self._available}")
 
 
+# Q2(D)
 class Loan:
     """A class to represent a loan made for a copy of an item
 
-    Example:
+    Examples:
         >>> book = Book('ICT162', 2019, 19.90, ['SUSS'])
         >>> item_copy = ItemCopy(book)
         >>> loan = Loan(item_copy)
+
     """
 
     def __init__(self, item_copy: ItemCopy, loan_date: datetime):
-        """Constructs and initialises all necessary attributes for the Loan class
-
-
-        The `__init__` method initialises three instance attributes.
+        """The `__init__` method initialises three instance attributes.
 
         Args:
-            item_copy (ItemCopy): The copy of the item that a loan is made for
-            due_date (datetime): The date of which the loan must be returned
-                prior to any form of renewal, before fines are incurred.
-            return_date (datetime): The date of which the loan is return back to
-                the library.
+            item_copy: The copy of the item that a loan is made for
+            loan_date: Date of the loan occured, used to compute the `due_date`,
+                where `due_date` = `loan_date` + `Item.get_loan_duration()`
+
         """
         self._item_copy = item_copy
+        # `due_date` = `loan_date` +  `Item.get_loan_duration()`
         self._due_date = (loan_date +
                           timedelta(days=item_copy.item.get_loan_duration()))
+        # :datetime:  Return date of the loan, default to [None].
         self._return_date = None
+
+    # TODO: temp solution for item_copy to retrieve available in return item
+    # TODO: check why is it here
+    @property
+    def item_copy(self) -> ItemCopy:
+        """Item copy borrowed in the loan process
+
+        :getter: Returns the item copy borrowed in the loan
+
+        """
+        return self._item_copy
 
     @property
     def due_date(self) -> datetime:
         """The date of which the loan must be returned before fines are incurred.
         The due date can be extended using `renew` method if renewal is done
-        before the due date.
+        on or before the due date.
 
-        :getter: Return the current due date for the loan of the copy of the item
-        :rtype: datetime
+        :getter: Returns the due date of the loan for the copy of the item
+
         """
         return self._due_date
 
     @property
     def return_date(self) -> datetime:
-        """The date of which the loan is returned back to the library, default to
-        [None]
+        """Return date of the loan, until the item has indicated to be returned,
+        default to [None]
 
-        :getter: Return the date of which the loan is returned
-        :setter: Set the date of which the loan is returned back to the library
-        :rtype: datetime
+        :getter: Returns the returned date of the loan
+        :setter: Set the returned date of the loan
+
         """
         return self._return_date
 
@@ -316,58 +324,74 @@ class Loan:
         self._return_date = return_date
 
     def loan_title(self) -> str:
-        """The title of the loaned copy of the item.
-        """
+        """Returns the title of the loaned copy of the item."""
         return self._item_copy.item.title
 
     def copy_id(self) -> int:
-        """The copy id of the loaned copy of the item.
-        """
+        """Returns the copy id of the loaned copy of the item."""
         return self._item_copy.copy_id
 
-    # TODO: review on the need for renew_date
+    # TOOD: Jenny confirmed the need to add `renew_date` as a new arg.
     def renew(self, renew_date: datetime) -> bool:
-        """Method to extend the due date of the loan provided that the renewal
-        date is before the current due date. If the date of attempted renewal is
-        after the due date, the renewal cannot be proceeded.
+        """Extend the due date of the loan provided that the renewal date,
+        is on or before the current due date.
+
+        If the date of attempted renewal is after the due date, the renewal
+        cannot be proceeded.
 
         The new due date is computed as:
-            `due_date` = curr_due_date + `Item.get_loan_duration()`
+            `due_date` += `Item.get_loan_duration()`
 
-        Return:
-            (bool): True if renewal is successful, else False.
+        Args:
+            renew_date: The date of which the renewal was requested.
+
+        Returns
+            True if renewal is successful, False if otherwise.
+
         """
         # renew_date = datetime.now()
-        if renew_date < self._due_date:
+        if renew_date <= self._due_date:    # before up to the actual due date
             self._due_date += timedelta(days=self._item_copy.item.get_loan_duration())
             return True
+
         return False
 
     def get_fines(self) -> float:
-        """Method to compute the fines of the loan given the number of days, of
-        which the loan has exceeded the due date.
+        """Compute the loan fines given the number of days the loan had exceeded
+        the due date. The fines are only computed when the loan is returned.
 
-        The fines are only computed when the loan is returned. The computation:
+        The computation:
             fines = days_exceed * `Item.get_fines_per_day()`
 
         If the loan has not been returned, the fines will be returned as -1.
 
-        Return:
-            fines (float): -1 if the loan has not been returned, else the fines
+        Returns:
+            fines: -1 if the loan has not been returned, else the fines
                 will be compute based on days exceeded and fines per day for the
                 type of item.
+
         """
         fines = -1
+
+        # Loans has been returned
         if self._return_date is not None:
             days_exceed = (self._return_date - self._due_date
                            if self._return_date > self._due_date else 0)
-            fines = days_exceed.days * self._item_copy.item.get_fines_per_day()
-        return fines
+            # Loan not returned on time (`due_date` == `return_date`)
+            if days_exceed:
+                fines = (
+                    days_exceed.days * self._item_copy.item.get_fines_per_day())
+            else:
+                fines = 0
+
+        return float(fines)
 
     def lost_charges(self) -> float:
-        """The lost charges associated with the copy of the item loaned if the
-        loan was reported to be lost.
+        """Returns lost charges associated with the copy of the item loaned if
+        the loan was reported to be lost.
+
         """
+
         return self._item_copy.item.lost_charges()
 
     def __str__(self) -> str:
@@ -382,37 +406,38 @@ class Loan:
                 f"Return on: {return_date}")
 
 
-if __name__ == '__main__':
-    # b1 = Book('The Road to Forget', 2020, 35.00, ['Justin Grave', 'Tom Aplesson'])
-    # print(b1.year_published)
-    # print(b1.get_admin_charge())
-    # print(b1.get_loan_duration())
-    # print(b1)
-    # print(help(b1))
-    # m1 = Media('Asia Food and Culture', 2019, 30.00)
-    # print(m1.get_admin_charge())
-    # print(m1.get_fines_per_day())
-    # print(m1.get_loan_duration())
-    # ic1 = ItemCopy(b1)
-    # print(ic1)
-    # ic2 = ItemCopy(m1)
-    # ic2.available = False
-    # print(ic2)
-    # ic3 = ItemCopy(b1)
-    # ic3.available = False
-    # print(ic3)
-    # print(help(Loan))
-    # l1 = Loan(ic3, datetime(2021, 3, 15))
-    # print(l1)
-    # print(l1.renew())
-    # print(l1)
-    # l1.return_date = datetime(2021, 4, 12)
-    # print(l1)
-    # print(l1.get_fines())
-    # print(l1.lost_charges())
-    # print(l1.loan_title())
-    print(help(Item))
-    print(help(Book))
-    print(help(Media))
-    print(help(ItemCopy))
+def main():
+    """Sequences of events to test the classes defined"""
+
+    b1 = Book('The Road to Forget', 2020, 35.00, ['Justin Grave', 'Tom Aplesson'])
+    print(b1.year_published)
+    print(b1.get_admin_charge())
+    print(b1.get_loan_duration())
+    print(b1)
+    print(help(b1))
+    m1 = Media('Asia Food and Culture', 2019, 30.00)
+    print(m1.get_admin_charge())
+    print(m1.get_fines_per_day())
+    print(m1.get_loan_duration())
+    ic1 = ItemCopy(b1)
+    print(ic1)
+    ic2 = ItemCopy(m1)
+    ic2.available = False
+    print(ic2)
+    ic3 = ItemCopy(b1)
+    ic3.available = False
+    print(ic3)
     print(help(Loan))
+    l1 = Loan(ic3, datetime(2021, 3, 15))
+    print(l1)
+    print(l1.renew())
+    print(l1)
+    l1.return_date = datetime(2021, 4, 12)
+    print(l1)
+    print(l1.get_fines())
+    print(l1.lost_charges())
+    print(l1.loan_title())
+
+
+if __name__ == '__main__':
+    main()
