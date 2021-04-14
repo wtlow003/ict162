@@ -1,11 +1,21 @@
-# Q3(A)
+"""
+Created on 01 Apr 2021
+
+@author: Low Wei Teck
+
+06 Apr 2021: Completed working copy for q3.py, need further testing for get_admin_charge
+             case.
+
+"""
+
+
 from datetime import datetime
 from q2 import Book, Media, Loan, ItemCopy, Item
 
 
+# Q3(A)
 class LibraryException(Exception):
-    """Exception class for exceptions raised in Library application.
-    """
+    """Exception class for exceptions raised in Library application."""
 
 
 class LibraryPaymentException(LibraryException):
@@ -23,11 +33,12 @@ class LibraryPaymentException(LibraryException):
 
         :getter: Return the amount involved in raising the exception
         :rtype: float
+
         """
         return self._amount
 
 
-# Q3(B)
+# Q3(B)(i)
 class Member:
     """A class to represent a member of the Library
 
@@ -39,6 +50,7 @@ class Member:
 
     Example:
         >>> member = Member('S101', 'Jensen')
+
     """
     _LOAN_QUOTA: int = 4
 
@@ -50,8 +62,7 @@ class Member:
 
     @classmethod
     def get_loan_quota(cls) -> int:
-        """Return the loan quota set for the member class
-        """
+        """Return the loan quota set for the member class"""
         return cls._LOAN_QUOTA
 
     @property
@@ -60,6 +71,7 @@ class Member:
 
         :getter: Return the member_id of the Member class object
         :rtype: str
+
         """
         return self._member_id
 
@@ -69,12 +81,21 @@ class Member:
 
         :getter: Return the amount currently owed by the member
         :rtype: float
+
         """
         return self._amount_owed
 
     def past_loans(self, title: str = None) -> list:
         """Return a list of loans with returned items.
+
+        Args:
+            title: The title of the item loaned previously, default to [None].
+
+        Returns:
+            past_loans: A list of past loans with matching titles.
+
         """
+
         past_loans = []
         # if title is supplied
         if title:
@@ -86,10 +107,18 @@ class Member:
         else:
             # check for loan with return date
             past_loans = [loan for loan in self._loans if loan.return_date is not None]
+
         return past_loans
 
     def present_loans(self, title: str = None) -> list:
         """Return a list of loans with unreturned items.
+
+        Args:
+            title: The title of the item loaned currently, default to [None].
+
+        Returns:
+            present_loans: A list of present loans with matching titles.
+
         """
         present_loans = []
         # if title is supplied
@@ -101,6 +130,7 @@ class Member:
         else:
             # check for the loan with no return date
             present_loans = [loan for loan in self._loans if loan.return_date is None]
+
         return present_loans
 
     # TODO: double check on the logic
@@ -110,29 +140,35 @@ class Member:
         If no such loan exist, the method will return the last returned loan with
         a matching title, else returns `None`.
 
-        Return:
+        Args:
+            title: The title of the item to be searched in the member's loan
+                history.
+
+        Returns:
             loan (Loan): Search for unreturned loan first, if not avaiable, then
                 the last returned item will be returned, default to [None].
+
         """
+
         loan = None
         unreturned_loans = self.present_loans(title)
         returned_loans = self.past_loans(title)
+
         if unreturned_loans:
             loan = unreturned_loans[0]  # first matched loan
         elif not unreturned_loans and returned_loans:
             # sort the returned loan by date and return the last matched item
             returned_loans.sort(key=lambda loan: loan.return_date, reverse=True)
             loan = returned_loans[0]    # last returned matched item
+
         return loan
 
     def count_current_loan(self) -> int:
-        """Count the number of unreturned items loaned.
-        """
+        """Count the number of unreturned items loaned."""
         return len(self.present_loans())
 
     def quota_reached(self) -> bool:
-        """Indicate whether if the current number of loans is at the loan quota.
-        """
+        """Return True if current loan number reached quota, False otherwise."""
         return self.count_current_loan() == type(self)._LOAN_QUOTA
 
     def borrow_item(self, item_copy: ItemCopy, date_borrowed: datetime) -> bool:
@@ -142,13 +178,17 @@ class Member:
         Upon borrowing the item, the item will be set to unavailable for others
         to borrow.
 
-        The `borrow_item` method raises certain exception as follows:
-            1. If `item_copy` provided is unavailable (already borrowed out).
-            2. If member's `LOAN_QUOTA` has been reached.
-            3. If the member has an outstanding fines.
+        Args:
+            item_copy: A copy of the item in the library to be borrowed.
+            date_borrowed: The date of which the item copy is borrowed.
 
-        Return:
+        Returns:
             (bool): Indicate whether the loan of the item copy was successful.
+
+        Raises:
+            LibraryException: Item copy is unavailable or loan quota is reached.
+            LibraryPaymentException: If member has an existing fine unpaid.
+
         """
         # `item_copy` is already borrowed out (unavailable)
         if not item_copy.available:
@@ -158,26 +198,33 @@ class Member:
         # TODO: check logic for outstanding fines
         # TODO: check type of exception to raise
         if self._amount_owed > 0:
-            raise LibraryPaymentException(self._amount_owed, f"You have ${self._amount_owed:.2f} "
-                                          "outstanding fines. Do you want wish to pay your fines now? (y/n): ")
+            raise LibraryPaymentException(self._amount_owed,
+                                          f"You have ${self._amount_owed:.2f} "
+                                          "outstanding fines. "
+                                          "Do you want wish to pay your fines now? (y/n): ")
 
         loan = Loan(item_copy, date_borrowed)       # creating the loan
         self._loans.append(loan)        # adding to the member's loans
         item_copy.available = False     # setting item to unavailable
+
         return True
 
-    # TODO: check the renew procedure -> NOT WORKING
     def renew(self, title: str, renew_date: datetime) -> bool:
         """Method to allow member to renew the due date of the loaned item
 
-        The `renew` method raises certain exceptions as follows:
-            1. Provided title for renewal does not match all loans
-            2. Provided title does not match existing loans but matched past loans.
-            3. Provided title has a match, but renewal date exceed due date.
+        Args:
+            title: The title of the item copy loaned, that is to be renewed.
+            renew_date: The date of which renewal is requested.
 
-        Return:
+        Returns:
             (bool): Indicate whether the loan is renewed
+
+        Raises:
+            LibraryException: If no loan is detected, loan has already been
+                returned or renewal date is beyond the original due date.
+
         """
+
         matched_loans = self.search_loan_for(title)
         past_loans = self.past_loans(title)
         present_loans = self.present_loans(title)
@@ -192,6 +239,7 @@ class Member:
             raise LibraryException(
                 f"Date of renewal on {renew_date} exceed the existing due date on {due_date}")
         matched_loans.renew(renew_date)
+
         return True
 
     def return_item(self, title: str, return_date: datetime) -> bool:
@@ -200,12 +248,17 @@ class Member:
         Upon returning the item, the fines is also recorded if any fines are
         incurred. Item copy will also be set to available thereafter.
 
-        The `return_item` method raises certain exceptions as follows:
-            1. Provided title for returning does not match all loans
-            2. Provided title does not match exisitng loans but matched past loans
+        Args:
+            title: The title of the item copy to be returned to the library.
+            return_date: The date of each the loan is returned.
 
         Return:
             (bool): Indicate whether the loan item has been returned
+
+        Raises:
+            LibraryException: If title provided does not match any loans, or
+                title matches items that have already been returned.
+
         """
         matched_loans = self.search_loan_for(title)
         past_loans = self.past_loans(title)
@@ -213,39 +266,42 @@ class Member:
 
         if not matched_loans:
             raise LibraryException(f"There is no loan recorded for {title}")
+        # TODO: fix the return date formatting.
         if not present_loans and past_loans:
             raise LibraryException(f"Item has been returned on {matched_loans.return_date}")
 
-        matched_loans.return_date = return_date     # update with return date
-        matched_loans.item_copy.available = True    # update the item copy back to available
-        # retrieving fines, if any
+        matched_loans.return_date = return_date     # Update with return date
         fines_incurred = matched_loans.get_fines()
         if fines_incurred:
-            self._amount_owed += fines_incurred     # fines added to `amount_owed`
+            self._amount_owed += fines_incurred     # Fines added to `amount_owed`
+
         return True
 
     def pay(self, amount: float) -> float:
         """Method to allow members to pay their outstanding fines
 
-        The `pay` method raises certain exceptions as follows:
-            1. The `amount` is not more than 0
+        Args:
+            amount: The amount the member is paying for their outstanding fines.
 
-        Return:
+        Returns:
             change (float): change if the amount paid exceed amount owed, default
-            to [0]
+            to [0].
+
+        Raises:
+            LibraryPaymentException: If the amount chosen by the member for the
+                payment is less than 0.
+
         """
         if amount <= 0:
             raise LibraryPaymentException(amount,
                                           f"You owed ${self._amount_owed:.2f}. "
                                           f"Please pay an amount more than ${amount:.0f}.")
-        # if you paid < owed, change = 0
-        # if paid == owed, change = 0
-        # if paid > owed, change > 0
+        # Change does not exists if you pay less than required
         change = amount - self._amount_owed if amount > self._amount_owed else 0
-        # making the adjustment to outstanding fines
-        # the maximum payment is completely paying the fines, `_amount_owed` == 0
-        # ensures that you only pay until the maximum allowable
+        # Maximum payable fines is exisitng outstanding fines
+        # Only payable until the `_amount_owed` == 0
         self._amount_owed -= (amount - change)
+
         return change
 
     def loan_str(self, loans: list = None) -> str:
@@ -255,30 +311,34 @@ class Member:
         If a list of loan is given, it returns the string representation of such
         loans in the list instead.
 
-        Return:
+        Args:
+            loans: A list of loans given to be displayed, default to [None].
+
+        Returns:
             loan_str (str): a string representation of given loans by a member,
             default to [`self._loans`]
+
         """
         loan_str = '\n'.join([str(loan) for loan in self._loans])   # all loans
         if loans is not None:
             loan_str = '\n'.join([str(loan) for loan in loans])  # selected loans
+
         return loan_str
 
     def __str__(self):
-        # if no items are returned, `get_fines` method in Loan class will return
-        # -1, hence, we need set the amount owed 0 and only return proper values
-        # items are returned and check for fines for exceeding due date.
         amount_owed = self._amount_owed
         past_loans = self.past_loans()
         present_loans = self.present_loans()
-        return (f"Id: {self._member_id} {self._name} Owed: ${amount_owed:.2f}"
+
+        return (f"\nId: {self._member_id} {self._name} Owed: ${amount_owed:.2f}"
                 f"\nPast loans:"
                 f"\n{'No past loans' if not past_loans else self.loan_str(past_loans)}"
                 f"\nPresent loans:"
                 f"\n{'No outstanding loans' if not present_loans else self.loan_str(present_loans)}"
-                f"\nOutstanding loans: {self.count_current_loan()}\n")
+                f"\nOutstanding loans: {self.count_current_loan()}")
 
 
+# Q3(B)(ii)
 class JuniorMember(Member):
     """A class that represents a junior member, which is below a standard
     member.
@@ -299,6 +359,7 @@ class JuniorMember(Member):
         super().__init__(member_id, name)
 
 
+# Q3(C)
 class Library:
     """A class to represent a library.
 
@@ -317,43 +378,36 @@ class Library:
         self._copy_items = []
 
     def add_item(self, item: Item) -> bool:
-        """Add item to `_items` if item's title does not exist
-        """
+        """Add item to `_items` if item's title does not exist"""
         if item.title not in self._items.keys():
             self._items[item.title] = item
             return True
         return False
 
     def add_copy_item(self, item: Item) -> None:
-        """Creates a copy item and adds to `_copy_items`
-        """
+        """Creates a copy item and adds to `_copy_items`"""
         copy_item = ItemCopy(item)
         self._copy_items.append(copy_item)
 
     def register_member(self, member: Member) -> bool:
-        """Add a member to `_members` if member id does not exist
-        """
+        """Add a member to `_members` if member id does not exist"""
         if member.member_id not in self._members:
             self._members[member.member_id] = member
             return True
         return False
 
     def remove_member(self, member_id: str) -> Member:
-        """Remove a member from `_members` based on the `member_id`
-        """
-        # if member exist remove and return the member, else return None
-        return self._members.pop(member_id, None)
+        """Remove a member from `_members` based on the `member_id`"""
+        return self._members.pop(member_id, None)   # Return None if no member
 
     def search_member(self, member_id: str) -> Member:
-        """Search a member based on `member_id` from `_members``
-        """
+        """Search a member based on `member_id` from `_members``"""
         if member_id in self._members:
             return self._members[member_id]
         return None
 
     def search_copy_item(self, copy_id: int) -> ItemCopy:
-        """Search a copy item based on `copy_id` from `_copy_items`
-        """
+        """Search a copy item based on `copy_id` from `_copy_items`"""
         matched = [copy for copy in self._copy_items if copy.copy_id == copy_id]
         # empty list -> False, list with element -> True
         if matched:
@@ -362,10 +416,18 @@ class Library:
 
     # TODO: check logic and refactoring
     def get_available_copy_items(self) -> list:
-        available = [copy for copy in self._copy_items if copy.available is True]
-        return available
+        """Retrieving all item copies that are currently available
+
+        Returns:
+            available_item_copies: A list of item copies that is available.
+
+        """
+        available_item_copies = [copy for copy in self._copy_items
+                                 if copy.available is True]
+        return available_item_copies
 
     def copy_item_str(self, copy_item_list: list = None) -> str:
+        """String representation of item copies in the Library class object"""
         if copy_item_list:
             copy_items = '\n'.join([str(copy) for copy in copy_item_list])
         else:
@@ -373,10 +435,12 @@ class Library:
         return f"{copy_items}"
 
     def member_str(self) -> str:
+        """String representation of members in the Library class object"""
         members = '\n'.join([str(mem) for mem in self._members.values()])
         return f"{members}"
 
     def item_str(self) -> str:
+        """String representation of items in the Library class object"""
         items = '\n'.join([str(item) for item in self._items.values()])
         return f"{items}\n"
 
@@ -386,6 +450,8 @@ class Library:
                 f"\n{self.member_str()}")
 
 
+# Q3(E)
+# TODO: Check whether are applying try block too early.
 class LibraryApplication:
     """
     """
@@ -395,15 +461,16 @@ class LibraryApplication:
         """
         self._library = library
 
-    def date_check(self, date_type: str):
-        """Retrieve user's date input and run a format validity check
+    @staticmethod
+    def date_check(date_type: str) -> datetime:
+        """Obtain date input and run a format validity check
 
         Args:
-            date_type (str): Indicate what kind of date we are checking for
+            date_type: Indicate what kind of date we are checking for
                 >>> 'renew': checking for renewal date
 
-        Return:
-            requested_date (datetime): Return the user inputted date that pass
+        Returns:
+            requested_date: Return the user inputted date that pass
                 the format check
         """
         while True:
@@ -414,20 +481,33 @@ class LibraryApplication:
                 break
             except ValueError:
                 print(f"{requested_date} is not in the format dd/mm/yyyy")
+
         return requested_date
 
-    def option_1(self):
-        """Allow users to borrow items through available copy ids
+    def member_check(self):
+        """Obtain member id and run a validity check with `library`
+
+        Returns:
+            member: The member id if member is valid, else return empty string.
+
         """
         member_id = input("Enter member id: ")
-
-        # Check if member id is valid
         member = self._library.search_member(member_id.upper())
         if member is None:
             print("Invalid member id")
-        else:
+
+        return member
+
+    # TODO: PLEASE FIX
+    def option_1(self):
+        """Allow users to borrow items through available copy ids
+        """
+        member = self.member_check()
+
+        if member:
             print(
-                f"Current number of loans: {member.count_current_loan()} Quota: {member.get_loan_quota()}")
+                f"Current number of loans: {member.count_current_loan()} "
+                f"Quota: {member.get_loan_quota()}")
 
             if member.quota_reached():
                 print("Quota reached. No more loan allowed")
@@ -463,26 +543,22 @@ class LibraryApplication:
                             member.borrow_item(item_copy, borrow_date)
                             print(f"Sucessfully borrowed {item_copy.item.title}")
                         elif payment_choice.lower() == 'n':
+                            print("Please pay your fines first before borrowing")
                             break
                     except ValueError:
                         print(f"{copy_item_choice} is not a valid item copy choice")
-                # TODO: think of how to use `Member` quota exception
+                # # TODO: think of how to use `Member` quota exception
                 if member.quota_reached():
                     print("Loan quota reached")
+
             print(member)
 
-    # TODO: implement the renewal class
     def option_2(self):
-        """Allow users to renew items through title
-        """
-        member_id = input("Enter member id: ")
+        """Allow users to renew items through title"""
+        member = self.member_check()
 
-        # Check if member id is valid
-        member = self._library.search_member(member_id.upper())
-        try:
-            if member is None:
-                print("Invalid member id")
-            else:
+        if member:
+            try:
                 title = input("Enter title: ")
                 renew_date = self.date_check('renew')
                 # title check
@@ -496,68 +572,61 @@ class LibraryApplication:
                           f"{loan.return_date.strftime('%d %b %Y')}")
                 else:
                     print(f"There is no loan recorded for {title}")
-        except LibraryException as e:
-            print(e)
-        print(member)
+            except LibraryException as e:
+                print(e)
+
+            # Display member's info for verification
+            print(member)
 
     def option_3(self):
-        member_id = input("Enter member id: ")
+        member = self.member_check()
 
-        # Check if the member is valid
-        member = self._library.search_member(member_id.upper())
-        try:
-            if not member:
-                # TODO: see if we need to standardize the rest of the output
-                print("Invalid member id")
-            else:
-                return_date = self.date_check('return')
-                # Check the number of loans by the member -> use as the breaking point
-                # If not no more current loans
-                while member.count_current_loan() > 0:
-                    title = input("Enter title or <ENTER> to end: ")
-                    if title:
-                        # check for loan
+        if member:
+            return_date = self.date_check('return')
+            while member.count_current_loan() > 0:
+                title = input("Enter title or <ENTER> to end: ")
+                if title:
+                    try:
                         loan = member.search_loan_for(title)
-                        if loan and not loan.return_date:
+                        if loan:
                             member.return_item(title, return_date)
-                            print(f"Successfuly returned {title}")
-                        elif loan and loan.return_date:
-                            print("Item has been returned on "
-                                  f"{loan.return_date.strftime('%d %b %Y')}")
-                        else:
-                            print(f"There is no loan recorded for {title}")
-                    else:
-                        break
-                if member.count_current_loan() == 0:
-                    print("No more outstanding loans")
-        except LibraryException as e:
-            print(e)
-        # Display member's info for verification
-        print(member)
+                            print(f"Successfully returned {title}")
+                    except LibraryException as e:
+                        print(e)
+                else:
+                    break
+
+            # Display member's info for verification
+            print(member)
 
     def option_4(self):
-        member_id = input("Enter member id: ")
+        """
+        """
+        member = self.member_check()
 
-        # Check if the member is valid
-        member = self._library.search_member(member_id.upper())
-        try:
-            if not member:
-                # TODO: see if we need to standardize the rest of the output
-                print("Invalid member id")
+        if member:
+            if member.amount_owed == 0:
+                print("There is no outstanding fines")
             else:
-                while True:
-                    amount = input("Enter amount: ")
-                    if amount.isdigit():
-                        break
-                    else:
-                        print(f"{amount} is not a valid amount")
-                # Making the payment reflect for the member
-                change = member.pay(float(amount))
-                print(f"Sucessfully paid ${amount}. Current balance: ${member.amount_owed:.2f}")
-                if change:
-                    print(f"Your change: ${change:.2f}")
-        except LibraryPaymentException as pe:
-            print(pe)
+                try:
+                    while True:
+                        amount = input("Enter amount: ")
+                        if amount.isdigit():
+                            break
+                        else:
+                            print(f"{amount} is not a valid amount")
+                    # Making the payment reflect for the member
+                    change = member.pay(float(amount))
+                    print(f"Sucessfully paid ${amount}. "
+                          f"Current balance: ${member.amount_owed:.2f}")
+                    if change:
+                        print(f"Your change: ${change:.2f}")
+
+                except LibraryPaymentException as pe:
+                    print(pe)
+
+            # Display member's info for verification
+            print(member)
 
     # Print menu options
     def menu(self):
@@ -589,6 +658,7 @@ class LibraryApplication:
             print(f"{selected_option} is not a valid menu option")
 
 
+# Q3(D)(i)
 def populated_items():
     """Informations to be populatd into Library object
 
@@ -603,18 +673,13 @@ def populated_items():
     """
 
     # Creating the two member
-    john = Member('S123', 'John')
-    mary = JuniorMember('J111', 'Mary')
-    members = [john, mary]
+    members = [Member('S123', 'John'), JuniorMember('J111', 'Mary')]
 
-    # Creating the items in the library
-    item_1 = Book('The Road to Forget', 2020, 35.00, ['Justin Grave',
-                                                      'Tom Aplesson'])
-    item_2 = Media('Asia Food and Culture', 2019, 30.00)
-    item_3 = Book('Dark Knight', 2010, 29.00, ['Allyson Day'])
-    item_4 = Media('Powerpoint Presentation Tips', 2020, 15.00)
-    # Creating the list of all the items
-    items = [item_1, item_2, item_3, item_4]
+    # Creating the list of all the items in the library
+    items = [Book('The Road to Forget', 2020, 35.00, ['Justin Grave', 'Tom Aplesson']),
+             Media('Asia Food and Culture', 2019, 30.00),
+             Book('Dark Knight', 2010, 29.00, ['Allyson Day']),
+             Media('Powerpoint Presentation Tips', 2020, 15.00)]
 
     # Indicating no. of copies for items in the library
     item_copies = {'The Road to Forget': 2, 'Asia Food and Culture': 3,
@@ -623,7 +688,10 @@ def populated_items():
     return members, items, item_copies
 
 
+# Q3(D)(ii)
 def initialise_library(members, items, item_copies, library):
+    """
+    """
 
     print("*** Start initialising library ***\n")
 
@@ -643,70 +711,58 @@ def initialise_library(members, items, item_copies, library):
             library.add_copy_item(item)
 
     # Key members_id and actual member object
-    john_id = 'S123'
-    mary_id = 'J111'
+    john = library.search_member('S123')
+    mary = library.search_member('J111')
 
-    john = library.search_member(john_id)
-    mary = library.search_member(mary_id)
+    # John borrows 4 items on 1 March 2021 and Mary borrows 1 item on 3 March 2021.
+    item_copies_loaned = [(john, datetime(2021, 3, 1), [1, 3, 6, 8]),
+                          (mary, datetime(2021, 3, 3), [9])]
 
-    # print("John borrows 4 items on 1 March 2021 and Mary borrows 1 item on 3 March 2021.")
-    item_copies_loaned = [(john_id, datetime(2021, 3, 1), [1, 3, 6, 8]),
-                          (mary_id, datetime(2021, 3, 3), [9])]    # item copies loaned by john and mary
-
-    for loan in item_copies_loaned:
-        member_id = loan[0]
-        date_borrowed = loan[1]
-        copy_id_borrowed = loan[2]
-        member = library.search_member(member_id)     # search by member id
+    for record in item_copies_loaned:
+        member = record[0]
+        date_borrowed = record[1]
+        copy_id_borrowed = record[2]
 
         for copy_id in copy_id_borrowed:
             item_copy = library.search_copy_item(copy_id)
             member.borrow_item(item_copy, date_borrowed)
 
-    # print(f"{library}\n")
-
-    # print("Member data after Mary renews loan on 5 March 2021 and John returns Copy Item 6, "
-    #       "Dark Knight on 17 March 2021")
+    # Member data after Mary renews loan on 5 March 2021 and John returns
+    # Copy Item 6, Dark Knight on 17 March 2021")
 
     # John returns 'Dark Knight on 17 March 2021'
-    item_copy = library.search_copy_item(6)
-    john.return_item(item_copy.item.title, datetime(2021, 3, 17))
+    john.return_item('Dark Knight', datetime(2021, 3, 17))
+    # Mary renews loan on 5 March 2021
     mary.renew('Powerpoint Presentation Tips', datetime(2021, 3, 5))
 
-    # print("John data after paying fines and he receives change $1.50")
+    # John data after paying fines and he receives change $1.50
     john.pay(2.00)
-    # print(john)
 
-    # print("John data after borrowing copy item 6, Dark Knight again on 22 March 2021")
-    item_copy = library.search_copy_item(6)
-    john.borrow_item(item_copy, datetime(2021, 3, 22))
-    # print(john)
+    # John data after borrowing copy item 6, Dark Knight again on 22 March 2021
+    john.borrow_item(library.search_copy_item(6), datetime(2021, 3, 22))
 
-    # print("Mary data after returning Powerpoint Presentation Tips on 17 March 2021")
-    item_copy = library.search_copy_item(9)
-    mary.return_item(item_copy.item.title, datetime(2021, 3, 17))
+    # Mary data after returning Powerpoint Presentation Tips on 17 March 2021
+    mary.return_item("Powerpoint Presentation Tips", datetime(2021, 3, 17))
 
-    # print(mary)
     print("*** Done initialising library ***\n")
-    # print("******* Library Test Data")
-    # print(library)
+    print("******* Library Test Data *******")
+    print(library)
+    print("******* Ends Library Test Data *******\n")
 
     return library
 
 
 def main():
 
-    # TODO: Temp solutions
-
-    # Instantiate the library object
+    # Instantiate the Library object
     library = Library()
 
-    # Retrieving the information required to populate the Library class
+    # Retrieving the information required to populate the Library object
     members, items, item_copies = populated_items()
 
-    # Initilising the library with relevant information and sequence of events
+    # Initialising the library with relevant information and sequence of events
     library = initialise_library(members, items, item_copies, library)
-    # Generating menu with initialised Library class object
+    # Generating menu with initialised Library object
     menu = LibraryApplication(library)
 
     while True:
