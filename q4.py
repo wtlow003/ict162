@@ -21,14 +21,18 @@ class BookingManagementGUI:
     def __init__(self, staycations: dict):
         self._staycations = staycations
         self._win = tk.Tk()
-        self._win.title("Staycation and Booking Management (Low Wei Teck)")
-        self.create_widgets()
 
+        # Setting properties for top container of the GUI
+        self._win.title("Staycation and Booking Management (Low Wei Teck)")
         self._win.geometry("560x375")
         self._win.resizable(False, False)
         self._win.config(bg="#ececec")
 
+        # Creating all widgets
+        self.create_widgets()
+        # Settting GUI initial behaviour
         self.start_application()
+        # Get `self._win` into a loop
         self._win.mainloop()
 
     @staticmethod
@@ -98,33 +102,238 @@ class BookingManagementGUI:
         The associated Entry Widgets are tied to the respective radio button's value,
         `self._booking_btn` = '0' and `self._staycation_btn` = '1'. When either
         buttons are selected, the opposite Entry Widgets (e.g., for '1'), '0' will be disabled and
-        greyed out.
+        greyed out. The previously inputs given in the Entry Widgets, will be also
+        be cleared when another radio button is pressed.
 
         """
         # Checking on which radio button is pressed.
         button_pressed = self._radio_var.get()
-
+        # Radio button and their respective associated Entry Widgets
         radio_buttons_links = {'0': [self._staycation_code_left_ety, self._customer_id_ety],
                                '1': [self._staycation_code_right_ety, self._hotel_name_ety,
                                      self._nights_ety, self._cost_ety]}
 
         if button_pressed == '0':
             for linked in radio_buttons_links['0']:
+                # Enable the Entry Widgets associated with Radio Button '0'
                 linked.config(state='normal')
             for unlinked in radio_buttons_links['1']:
+                # Clear existing inputs in Entry Widgets for Radio Button '1'
                 unlinked.delete(0, 'end')
+                # Disable inputs for Entry Widgets for Radio Button '1'
                 unlinked.config(state='disable')
         else:
             for linked in radio_buttons_links['1']:
+                # Enable the Entry Widgets associated with Radio Button '1'
                 linked.config(state='normal')
             for unlinked in radio_buttons_links['0']:
+                # Clear existing inputs in Entry Widgets for Radio Button '0'
                 unlinked.delete(0, 'end')
+                # Disable inputs for Entry Widgets for Radio Button '0'
                 unlinked.config(state='disable')
 
-    def create_widgets(self):
-        """Method to create all the widgets required in the booking management GUI
+    def check_entry(self, radio_button_pressed):
+        """Method to check if all Entry Widgets associated with the radio button
+            pressed is completely filled.
+
+        Uses the `radio_button_links` dictionary to determine which Entry Widgets
+        to check based on the radio button pressed.
+
+        Args:
+            radio_button_pressed: Returned value of the radio button pressed,
+                where '0' == 'self._booking_btn', '1' == 'self._staycation_btn'
+
+        Returns:
+            empty (bool): False if all Entry Widgets are filled, True if otherwise.
 
         """
+        radio_buttons_links = {'0': [self._staycation_code_left_ety, self._customer_id_ety],
+                               '1': [self._staycation_code_right_ety, self._hotel_name_ety,
+                                     self._nights_ety, self._cost_ety]}
+
+        empty = False
+
+        if radio_button_pressed == '0':
+            for entry in radio_buttons_links['0']:
+                if not entry.get():
+                    empty = True
+        else:
+            for entry in radio_buttons_links['1']:
+                if not entry.get():
+                    empty = True
+
+        return empty
+
+    def clear_entry(self, radio_button_pressed):
+        """Method to clear inputs in the Entry Widgets when action is fulfilled,
+            e.g., adding or removing bookings or staycations.
+
+        """
+        radio_buttons_links = {'0': [self._staycation_code_left_ety, self._customer_id_ety],
+                               '1': [self._staycation_code_right_ety, self._hotel_name_ety,
+                                     self._nights_ety, self._cost_ety]}
+
+        if radio_button_pressed == '0':
+            for entry in radio_buttons_links['0']:
+                entry.delete(0, tk.END)
+        else:
+            for entry in radio_buttons_links['1']:
+                entry.delete(0, tk.END)
+
+    def add_button(self):
+        """Method to call for when `self._add_btn` is pressed
+
+        Performs action when `self._add_btn` is pressed depending on the radio
+        button toggled. The method adds booking or staycation when all the
+        Entry Widgets are completed filled.
+
+        Raises:
+            ValueError: When `self._cost_ety` or `self._nights_ety` is not inputted
+                with integer values
+
+        """
+        # Enable editing of scrolledtext for program to input data
+        self._scrolled_txt.config(state='normal')
+        radio_button_pressed = self._radio_var.get()
+
+        if not radio_button_pressed:
+            self._scrolled_txt.insert(tk.END, "Select either Booking or Staycation first.\n")
+        # Check if entries enabled are filled completely
+        elif self.check_entry(radio_button_pressed):
+            self._scrolled_txt.insert(tk.END, "Please complete all fields.\n")
+        else:
+            # If Booking is pressed
+            if radio_button_pressed == '0':
+                staycation_code = self._staycation_code_left.get()
+                if staycation_code not in self._staycations:
+                    self._scrolled_txt.insert(tk.END, "Invalid staycation code.\n")
+                else:
+                    member_id = self._customer_id_ety.get()
+                    booking = [staycation_code, member_id]
+                    type(self).bookings.append(booking)
+                    print(type(self).bookings)
+                    self.clear_entry(radio_button_pressed)
+                    self._scrolled_txt.insert(tk.END, "Added a booking.\n")
+            # If Staycation is pressed
+            else:
+                try:
+                    staycation_code = self._staycation_code_right.get()
+                    if staycation_code in self._staycations:
+                        self._scrolled_txt.insert(
+                            tk.END, "This code belongs to an existing staycation. Check the input.\n")
+                    else:
+                        hotel_name = self._hotel_name_ety.get()
+                        nights = int(self._nights_ety.get())
+                        cost = int(self._cost_ety.get())
+                        self._staycations[staycation_code] = [hotel_name, nights, cost]
+                        self.clear_entry(radio_button_pressed)
+                        self._scrolled_txt.insert(tk.END, "Added a staycation.\n")
+                except ValueError:
+                    self._scrolled_txt.insert(tk.END, "Nights or Cost field must be Integer.\n")
+
+        # Scrolling to the end of the text displayed
+        self._scrolled_txt.see(tk.END)
+        # Disabled the scroll text to prevent users from messing with the display
+        self._scrolled_txt.config(state='disable')
+
+    def remove_button(self):
+        """Method to call for when `self._remove_btn` is pressed
+
+        Performs action when `self._remove_btn` is pressed depending on the radio
+        button toggled. The method removes existing booking or staycation when all the
+        Entry Widgets are completed filled.
+
+        Raises:
+            ValueError: When `self._cost_ety` or `self._nights_ety` is not inputted
+                with integer values
+
+        """
+        # Enable editing of scrolledtext for program to input data
+        self._scrolled_txt.config(state='normal')
+        radio_button_pressed = self._radio_var.get()
+
+        if not radio_button_pressed:
+            self._scrolled_txt.insert(tk.END, "Select either Booking or Staycation first.\n")
+        elif self.check_entry(radio_button_pressed):
+            self._scrolled_txt.insert(tk.END, "Please complete all fields.\n")
+        else:
+            if radio_button_pressed == '0':
+                staycation_code = self._staycation_code_left.get()
+                member_id = self._customer_id_ety.get()
+                if [staycation_code, member_id] not in type(self).bookings:
+                    self._scrolled_txt.insert(
+                        tk.END, "No matching booking to remove. Check the input.\n")
+                else:
+                    matching_idx = type(self).bookings.index([staycation_code, member_id])
+                    type(self).bookings.pop(matching_idx)
+                    self.clear_entry(radio_button_pressed)
+                    self._scrolled_txt.insert(tk.END, "Removed a booking.\n")
+            else:
+                staycation_code = self._staycation_code_right.get()
+                if staycation_code not in self._staycations:
+                    self._scrolled_txt.insert(
+                        tk.END, "This code does not belong to an existing staycation. Check the input.\n")
+                else:
+                    try:
+                        hotel_name = self._hotel_name_ety.get()
+                        nights = int(self._nights_ety.get())
+                        cost = int(self._cost_ety.get())
+                        match_code = self._staycations[staycation_code]
+
+                        if match_code != [hotel_name, nights, cost]:
+                            self._scrolled_txt.insert(
+                                tk.END, "No matching staycation to remove. Check the input.\n")
+                        else:
+                            self._staycations.pop(staycation_code)
+                            self.clear_entry(radio_button_pressed)
+                            self._scrolled_txt.insert(tk.END, "Removed a staycation.\n")
+                    except ValueError:
+                        self._scrolled_txt.insert(tk.END,
+                                                  "Nights or Cost field must be Integer.\n")
+
+        # Scrolling to the end of the text displayed
+        self._scrolled_txt.see(tk.END)
+        # Disabled the scroll text to prevent users from messing with the display
+        self._scrolled_txt.config(state='disable')
+
+    def display_button(self):
+        """Method to call for when `self._display_btn` is pressed
+
+        Performs action when `self._display_btn` is pressed depending on the radio
+        button toggled. The method displays all bookings or staycations.
+
+        """
+        # Enable editing of scolledtext of program to input data
+        self._scrolled_txt.config(state='normal')
+        radio_button_pressed = self._radio_var.get()
+
+        if not radio_button_pressed:
+            self._scrolled_txt.insert(tk.END,
+                                      "Select either Booking or Staycation first.\n")
+        elif radio_button_pressed == '0':
+            if not type(self).bookings:
+                self._scrolled_txt.insert(tk.END, "No booking currently.\n")
+            else:
+                text = '\n'.join(
+                    [f"Booking {idx + 1}: {val[0]} {val[1]}"
+                     for idx, val in enumerate(type(self).bookings)])
+                self._scrolled_txt.insert(tk.END, text + '\n')
+        else:
+            if not self._staycations:
+                self._scrolled_txt.insert(tk.END, "No staycations currently.\n")
+            else:
+                text = '\n'.join(
+                    [f"Staycation code: {key} {val[0]} {val[1]} nights ${val[2]}"
+                     for key, val in self._staycations.items()])
+                self._scrolled_txt.insert(tk.END, text + '\n')
+
+        # Scrolling to the end of the text displayed
+        self._scrolled_txt.see(tk.END)
+        # Disabled the scroll text to prevent users from messing with the display
+        self._scrolled_txt.config(state='disable')
+
+    def create_widgets(self):
+        """Method to create all widgets required for the booking management GUI"""
         # Set the general style used by widgets created from ttk
         style = ttk.Style()
         style.theme_use('aqua')
@@ -220,171 +429,9 @@ class BookingManagementGUI:
         # Only activating scrolled text when display of information is required
         self._scrolled_txt.config(state='disable')
 
-    def check_entry(self, radio_button_pressed):
-        """
-
-        """
-        radio_buttons_links = {'0': [self._staycation_code_left_ety, self._customer_id_ety],
-                               '1': [self._staycation_code_right_ety, self._hotel_name_ety,
-                                     self._nights_ety, self._cost_ety]}
-
-        empty = False
-
-        if radio_button_pressed == '0':
-            for entry in radio_buttons_links['0']:
-                if not entry.get():
-                    empty = True
-        else:
-            for entry in radio_buttons_links['1']:
-                if not entry.get():
-                    empty = True
-
-        return empty
-
-    def clear_entry(self, radio_button_pressed):
-        """
-
-        """
-        radio_buttons_links = {'0': [self._staycation_code_left_ety, self._customer_id_ety],
-                               '1': [self._staycation_code_right_ety, self._hotel_name_ety,
-                                     self._nights_ety, self._cost_ety]}
-
-        if radio_button_pressed == '0':
-            for entry in radio_buttons_links['0']:
-                entry.delete(0, tk.END)
-        else:
-            for entry in radio_buttons_links['1']:
-                entry.delete(0, tk.END)
-
-    def add_button(self):
-        """
-
-        """
-        # Enable editing of scrolledtext for program to input data
-        self._scrolled_txt.config(state='normal')
-        radio_button_pressed = self._radio_var.get()
-
-        if not radio_button_pressed:
-            self._scrolled_txt.insert(tk.END, "Select either Booking or Staycation first.\n")
-        # Check if entries enabled are filled completely
-        elif self.check_entry(radio_button_pressed):
-            self._scrolled_txt.insert(tk.END, "Please complete all fields.\n")
-        else:
-            # If Booking is pressed
-            if radio_button_pressed == '0':
-                staycation_code = self._staycation_code_left.get()
-                if staycation_code not in self._staycations:
-                    self._scrolled_txt.insert(tk.END, "Invalid staycation code.\n")
-                else:
-                    member_id = self._customer_id_ety.get()
-                    booking = [staycation_code, member_id]
-                    type(self).bookings.append(booking)
-                    print(type(self).bookings)
-                    self.clear_entry(radio_button_pressed)
-                    self._scrolled_txt.insert(tk.END, "Added a booking.\n")
-            # If Staycation is pressed
-            else:
-                try:
-                    staycation_code = self._staycation_code_right.get()
-                    if staycation_code in self._staycations:
-                        self._scrolled_txt.insert(
-                            tk.END, "This code belongs to an existing staycation. Check the input.\n")
-                    else:
-                        hotel_name = self._hotel_name_ety.get()
-                        nights = int(self._nights_ety.get())
-                        cost = int(self._cost_ety.get())
-                        self._staycations[staycation_code] = [hotel_name, nights, cost]
-                        self.clear_entry(radio_button_pressed)
-                        self._scrolled_txt.insert(tk.END, "Added a staycation.\n")
-                except ValueError:
-                    self._scrolled_txt.insert(tk.END, "Nights or Cost field must be Integer.\n")
-
-        self._scrolled_txt.see(tk.END)
-        self._scrolled_txt.config(state='disable')
-
-    def remove_button(self):
-        """
-
-        """
-        # Enable editing of scrolledtext for program to input data
-        self._scrolled_txt.config(state='normal')
-        radio_button_pressed = self._radio_var.get()
-
-        if not radio_button_pressed:
-            self._scrolled_txt.insert(tk.END, "Select either Booking or Staycation first.\n")
-        elif self.check_entry(radio_button_pressed):
-            self._scrolled_txt.insert(tk.END, "Please complete all fields.\n")
-        else:
-            if radio_button_pressed == '0':
-                staycation_code = self._staycation_code_left.get()
-                member_id = self._customer_id_ety.get()
-                if [staycation_code, member_id] not in type(self).bookings:
-                    self._scrolled_txt.insert(
-                        tk.END, "No matching booking to remove. Check the input.\n")
-                else:
-                    matching_idx = type(self).bookings.index([staycation_code, member_id])
-                    type(self).bookings.pop(matching_idx)
-                    self.clear_entry(radio_button_pressed)
-                    self._scrolled_txt.insert(tk.END, "Removed a booking.\n")
-            else:
-                staycation_code = self._staycation_code_right.get()
-                if staycation_code not in self._staycations:
-                    self._scrolled_txt.insert(
-                        tk.END, "This code does not belong to an existing staycation. Check the input.\n")
-                else:
-                    try:
-                        hotel_name = self._hotel_name_ety.get()
-                        nights = int(self._nights_ety.get())
-                        cost = int(self._cost_ety.get())
-                        match_code = self._staycations[staycation_code]
-
-                        if match_code != [hotel_name, nights, cost]:
-                            self._scrolled_txt.insert(
-                                tk.END, "No matching staycation to remove. Check the input.\n")
-                        else:
-                            self._staycations.pop(staycation_code)
-                            self.clear_entry(radio_button_pressed)
-                            self._scrolled_txt.insert(tk.END, "Removed a staycation.\n")
-                    except ValueError:
-                        self._scrolled_txt.insert(tk.END,
-                                                  "Nights or Cost field must be Integer.\n")
-
-        self._scrolled_txt.see(tk.END)
-        self._scrolled_txt.config(state='disable')
-
-    def display_button(self):
-        """
-
-        """
-        # Enable editing of scolledtext of program to input data
-        self._scrolled_txt.config(state='normal')
-        radio_button_pressed = self._radio_var.get()
-
-        if not radio_button_pressed:
-            self._scrolled_txt.insert(tk.END,
-                                      "Select either Booking or Staycation first.\n")
-        elif radio_button_pressed == '0':
-            if not type(self).bookings:
-                self._scrolled_txt.insert(tk.END, "No booking currently.\n")
-            else:
-                text = '\n'.join(
-                    [f"Booking {idx + 1}: {val[0]} {val[1]}"
-                     for idx, val in enumerate(type(self).bookings)])
-                self._scrolled_txt.insert(tk.END, text + '\n')
-        else:
-            if not self._staycations:
-                self._scrolled_txt.insert(tk.END, "No staycations currently.\n")
-            else:
-                text = '\n'.join(
-                    [f"Staycation code: {key} {val[0]} {val[1]} nights ${val[2]}"
-                     for key, val in self._staycations.items()])
-                self._scrolled_txt.insert(tk.END, text + '\n')
-
-        self._scrolled_txt.see(tk.END)
-        self._scrolled_txt.config(state='disable')
-
 
 def main():
+    """Instantiate and initialize the Booking Management GUI"""
     staycations = {'GM1': ['Grand Marina', 1, 238],
                    'GM2': ['Grand Marina', 2, 398],
                    'HB1': ['Hotel Bugis', 1, 168],
