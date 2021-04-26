@@ -1,5 +1,16 @@
+"""
+Created on 04 Apr 2021
+
+@author: Low Wei Teck
+
+22 Apr 2021: Started adding integrity checks, added .strip() to prevent whitespaces.
+    Added .lower() -> then .upper()/.title() before checks/inserts
+
+"""
+
+
 import tkinter as tk
-from tkinter import scrolledtext, StringVar, ttk
+from tkinter import scrolledtext, StringVar, ttk, messagebox
 
 
 class BookingManagementGUI:
@@ -147,12 +158,14 @@ class BookingManagementGUI:
             empty (bool): False if all Entry Widgets are filled, True if otherwise.
 
         """
+        # Dictionary indiciating what entry widgets to tied to which radio button
         radio_buttons_links = {'0': [self._staycation_code_left_ety, self._customer_id_ety],
                                '1': [self._staycation_code_right_ety, self._hotel_name_ety,
                                      self._nights_ety, self._cost_ety]}
 
         empty = False
 
+        # Check if each entry widget is filled, return empty if any unfilled
         if radio_button_pressed == '0':
             for entry in radio_buttons_links['0']:
                 if not entry.get():
@@ -196,37 +209,43 @@ class BookingManagementGUI:
         self._scrolled_txt.config(state='normal')
         radio_button_pressed = self._radio_var.get()
 
+        # Error message if no radio button pressed
         if not radio_button_pressed:
-            self._scrolled_txt.insert(tk.END, "Select either Booking or Staycation first.\n")
+            # self._scrolled_txt.insert(tk.END, "Select either Booking or Staycation first.\n")
+            messagebox.showwarning(
+                "Error", "Select either Booking or Staycation first.")
         # Check if entries enabled are filled completely
         elif self.check_entry(radio_button_pressed):
             self._scrolled_txt.insert(tk.END, "Please complete all fields.\n")
         else:
             # If Booking is pressed
             if radio_button_pressed == '0':
-                staycation_code = self._staycation_code_left.get()
-                if staycation_code not in self._staycations:
+                staycation_code = self._staycation_code_left.get().lower().strip()
+                # If booking is not associated with any existing staycation hotels
+                if staycation_code.upper() not in self._staycations:
                     self._scrolled_txt.insert(tk.END, "Invalid staycation code.\n")
                 else:
-                    member_id = self._customer_id_ety.get()
-                    booking = [staycation_code, member_id]
+                    member_id = self._customer_id_ety.get().lower().strip()
+                    booking = [staycation_code.upper(), member_id.upper()]
                     type(self).bookings.append(booking)
-                    print(type(self).bookings)
-                    self.clear_entry(radio_button_pressed)
+                    self.clear_entry(radio_button_pressed)  # clear entry after inserted
                     self._scrolled_txt.insert(tk.END, "Added a booking.\n")
             # If Staycation is pressed
             else:
                 try:
-                    staycation_code = self._staycation_code_right.get()
-                    if staycation_code in self._staycations:
+                    staycation_code = self._staycation_code_right.get().lower().strip()
+                    # if staycation code exists, you cant add the same code
+                    if staycation_code.upper() in self._staycations:
                         self._scrolled_txt.insert(
                             tk.END, "This code belongs to an existing staycation. Check the input.\n")
                     else:
-                        hotel_name = self._hotel_name_ety.get()
+                        hotel_name = self._hotel_name_ety.get().lower().strip()
                         nights = int(self._nights_ety.get())
                         cost = int(self._cost_ety.get())
-                        self._staycations[staycation_code] = [hotel_name, nights, cost]
-                        self.clear_entry(radio_button_pressed)
+                        # add staycation to the staycation dict
+                        self._staycations[staycation_code.upper()] = [
+                            hotel_name.title(), nights, cost]
+                        self.clear_entry(radio_button_pressed)  # clear entry after inserted
                         self._scrolled_txt.insert(tk.END, "Added a staycation.\n")
                 except ValueError:
                     self._scrolled_txt.insert(tk.END, "Nights or Cost field must be Integer.\n")
@@ -253,39 +272,47 @@ class BookingManagementGUI:
         radio_button_pressed = self._radio_var.get()
 
         if not radio_button_pressed:
-            self._scrolled_txt.insert(tk.END, "Select either Booking or Staycation first.\n")
+            # self._scrolled_txt.insert(tk.END, "Select either Booking or Staycation first.\n")
+            messagebox.showwarning(
+                "Error", "Select either Booking or Staycation first.")
         elif self.check_entry(radio_button_pressed):
             self._scrolled_txt.insert(tk.END, "Please complete all fields.\n")
         else:
+            # Booking selected
             if radio_button_pressed == '0':
-                staycation_code = self._staycation_code_left.get()
-                member_id = self._customer_id_ety.get()
-                if [staycation_code, member_id] not in type(self).bookings:
+                staycation_code = self._staycation_code_left.get().lower().strip()
+                member_id = self._customer_id_ety.get().lower().strip()
+                # Check if booking exists
+                if [staycation_code.upper(), member_id.upper()] not in type(self).bookings:
                     self._scrolled_txt.insert(
                         tk.END, "No matching booking to remove. Check the input.\n")
                 else:
-                    matching_idx = type(self).bookings.index([staycation_code, member_id])
+                    # if exists, remove the booking
+                    matching_idx = type(self).bookings.index(
+                        [staycation_code.upper(), member_id.upper()])
                     type(self).bookings.pop(matching_idx)
-                    self.clear_entry(radio_button_pressed)
+                    self.clear_entry(radio_button_pressed)  # clear entry after done
                     self._scrolled_txt.insert(tk.END, "Removed a booking.\n")
+            # Staycation selected
             else:
-                staycation_code = self._staycation_code_right.get()
-                if staycation_code not in self._staycations:
+                staycation_code = self._staycation_code_right.get().lower().strip()
+                # check if staycation exists
+                if staycation_code.upper() not in self._staycations:
                     self._scrolled_txt.insert(
                         tk.END, "This code does not belong to an existing staycation. Check the input.\n")
                 else:
                     try:
-                        hotel_name = self._hotel_name_ety.get()
+                        hotel_name = self._hotel_name_ety.get().lower().strip()
                         nights = int(self._nights_ety.get())
                         cost = int(self._cost_ety.get())
-                        match_code = self._staycations[staycation_code]
-
-                        if match_code != [hotel_name, nights, cost]:
+                        matched = self._staycations[staycation_code.upper()]
+                        # check if completed entry matched
+                        if matched != [hotel_name.title(), nights, cost]:
                             self._scrolled_txt.insert(
                                 tk.END, "No matching staycation to remove. Check the input.\n")
                         else:
-                            self._staycations.pop(staycation_code)
-                            self.clear_entry(radio_button_pressed)
+                            self._staycations.pop(staycation_code.upper())
+                            self.clear_entry(radio_button_pressed)  # clear entry after done
                             self._scrolled_txt.insert(tk.END, "Removed a staycation.\n")
                     except ValueError:
                         self._scrolled_txt.insert(tk.END,
@@ -308,23 +335,28 @@ class BookingManagementGUI:
         radio_button_pressed = self._radio_var.get()
 
         if not radio_button_pressed:
-            self._scrolled_txt.insert(tk.END,
-                                      "Select either Booking or Staycation first.\n")
+            # self._scrolled_txt.insert(tk.END, "Select either Booking or Staycation first.\n")
+            messagebox.showwarning(
+                "Error", "Select either Booking or Staycation first.")
+        # Booking selected
         elif radio_button_pressed == '0':
             if not type(self).bookings:
                 self._scrolled_txt.insert(tk.END, "No booking currently.\n")
             else:
+                # display format if booking exists
                 text = '\n'.join(
                     [f"Booking {idx + 1}: {val[0]} {val[1]}"
                      for idx, val in enumerate(type(self).bookings)])
                 self._scrolled_txt.insert(tk.END, text + '\n')
+        # Staycation selected
         else:
             if not self._staycations:
                 self._scrolled_txt.insert(tk.END, "No staycations currently.\n")
             else:
+                # display format if staycation exists
                 text = '\n'.join(
-                    [f"Staycation code: {key} {val[0]} {val[1]} nights ${val[2]}"
-                     for key, val in self._staycations.items()])
+                    [f"Staycation code: {key} {val[0]} {val[1]} {'nights' if val[1] > 1 else 'night'} "
+                     f"${val[2]}" for key, val in self._staycations.items()])
                 self._scrolled_txt.insert(tk.END, text + '\n')
 
         # Scrolling to the end of the text displayed
@@ -346,6 +378,7 @@ class BookingManagementGUI:
 
         self._radio_var = StringVar()
         self._radio_var.set('')     # Deselect both radio buttons first
+        # Booking == '0' and Staycation == '1'
         self._booking_btn = tk.Radiobutton(
             top_left, text='Booking', variable=self._radio_var,
             value='0', bg="#ececec", command=self.select_radio_btn)
