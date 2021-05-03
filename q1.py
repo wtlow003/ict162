@@ -7,6 +7,7 @@ class Customer:
 
     Example:
         >>> customer = Customer('Peter', 99998888)
+
     """
 
     def __init__(self, name, contact):
@@ -20,6 +21,7 @@ class Customer:
             contact (str): The contact number of the customer.
 
         """
+
         self._name = name
         self._contact = str(contact)
 
@@ -31,6 +33,7 @@ class Customer:
         :rtype: str
 
         """
+
         return self._name
 
     @property
@@ -42,6 +45,7 @@ class Customer:
         :rtype: str
 
         """
+
         return self._contact
 
     @contact.setter
@@ -85,6 +89,7 @@ class Staycation:
         :rtype: str
 
         """
+
         return self._hotel_name
 
     @property
@@ -95,6 +100,7 @@ class Staycation:
         :rtype: int
 
         """
+
         return self._nights
 
     @property
@@ -106,6 +112,7 @@ class Staycation:
         :rtype: float
 
         """
+
         return self._cost
 
     @cost.setter
@@ -121,6 +128,7 @@ class Staycation:
         :rtype: bool
 
         """
+
         return self._voucher_allowed
 
     @voucher_allowed.setter
@@ -138,6 +146,7 @@ class Staycation:
             cost_per_night (float): Cost divided by the number of nights booked.
 
         """
+
         cost_per_night = self._cost / self._nights
         return cost_per_night
 
@@ -156,6 +165,7 @@ class Staycation:
                 expensive per night.
 
         """
+
         return self.cost_per_night() < other.cost_per_night()
 
     def __str__(self):
@@ -185,6 +195,7 @@ class Booking:
                 time of booking
 
         """
+
         self._customer = customer
         self._staycation = staycation
         self._check_in_date = check_in_date
@@ -198,6 +209,7 @@ class Booking:
         :rtype: Customer
 
         """
+
         return self._customer
 
     @property
@@ -208,6 +220,7 @@ class Booking:
         :rtype: Staycation
 
         """
+
         return self._staycation
 
     @property
@@ -218,6 +231,7 @@ class Booking:
         :rtype: float
 
         """
+
         return self._cost
 
     @property
@@ -228,6 +242,7 @@ class Booking:
         :rtype: datetime
 
         """
+
         return self._check_in_date
 
     def check_out_date(self):
@@ -241,6 +256,7 @@ class Booking:
             date (datetime): The computed check-out date
 
         """
+
         nights = self._staycation.nights
         date = self._check_in_date + timedelta(days=nights)
         return date
@@ -264,6 +280,7 @@ class Booking:
                 and cost at booking
 
         """
+
         cost_difference = self._staycation.cost - self._cost
         return cost_difference
 

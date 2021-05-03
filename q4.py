@@ -62,6 +62,7 @@ class BookingManagementGUI:
                 Entry Widget associated with
 
         """
+
         label = tk.Label(
             master=master, width=width, text=text, bg="#ececec", anchor='w', padx=5)
         label.grid(row=row, column=col)
@@ -85,6 +86,7 @@ class BookingManagementGUI:
                 text strings from users
 
         """
+
         entry = tk.Entry(master, width=width, borderwidth=0.5, highlightthickness=0,
                          disabledbackground="#ececec", textvariable=textvar)
         entry.grid(row=row, column=col)
@@ -96,6 +98,7 @@ class BookingManagementGUI:
             are disabled to prevent entry until radio buttons are pressed.
 
         """
+
         entry_widgets = [self._staycation_code_left_ety,
                          self._staycation_code_right_ety,
                          self._customer_id_ety,
@@ -117,6 +120,7 @@ class BookingManagementGUI:
         be cleared when another radio button is pressed.
 
         """
+
         # Checking on which radio button is pressed.
         button_pressed = self._radio_var.get()
         # Radio button and their respective associated Entry Widgets
@@ -124,6 +128,7 @@ class BookingManagementGUI:
                                '1': [self._staycation_code_right_ety, self._hotel_name_ety,
                                      self._nights_ety, self._cost_ety]}
 
+        # When booking radio button is pressed
         if button_pressed == '0':
             for linked in radio_buttons_links['0']:
                 # Enable the Entry Widgets associated with Radio Button '0'
@@ -133,6 +138,7 @@ class BookingManagementGUI:
                 unlinked.delete(0, 'end')
                 # Disable inputs for Entry Widgets for Radio Button '1'
                 unlinked.config(state='disable')
+        # when staycation radio button is pressed
         else:
             for linked in radio_buttons_links['1']:
                 # Enable the Entry Widgets associated with Radio Button '1'
@@ -158,7 +164,9 @@ class BookingManagementGUI:
             empty (bool): False if all Entry Widgets are filled, True if otherwise.
 
         """
+
         # Dictionary indiciating what entry widgets to tied to which radio button
+        # Booking == '0', Staycation == '1'
         radio_buttons_links = {'0': [self._staycation_code_left_ety, self._customer_id_ety],
                                '1': [self._staycation_code_right_ety, self._hotel_name_ety,
                                      self._nights_ety, self._cost_ety]}
@@ -182,6 +190,8 @@ class BookingManagementGUI:
             e.g., adding or removing bookings or staycations.
 
         """
+
+        # Booking == '0', Staycation == '1'
         radio_buttons_links = {'0': [self._staycation_code_left_ety, self._customer_id_ety],
                                '1': [self._staycation_code_right_ety, self._hotel_name_ety,
                                      self._nights_ety, self._cost_ety]}
@@ -205,13 +215,18 @@ class BookingManagementGUI:
                 with integer values
 
         """
+
         # Enable editing of scrolledtext for program to input data
         self._scrolled_txt.config(state='normal')
         radio_button_pressed = self._radio_var.get()
 
         # Error message if no radio button pressed
         if not radio_button_pressed:
+            # If we want to write message in the scroll text
+            # We can use the code below
             # self._scrolled_txt.insert(tk.END, "Select either Booking or Staycation first.\n")
+            # However, a message box would bring more attention to the need
+            # to press a radio button first.
             messagebox.showwarning(
                 "Error", "Select either Booking or Staycation first.")
         # Check if entries enabled are filled completely
@@ -267,6 +282,7 @@ class BookingManagementGUI:
                 with integer values
 
         """
+
         # Enable editing of scrolledtext for program to input data
         self._scrolled_txt.config(state='normal')
         radio_button_pressed = self._radio_var.get()
@@ -330,6 +346,7 @@ class BookingManagementGUI:
         button toggled. The method displays all bookings or staycations.
 
         """
+
         # Enable editing of scolledtext of program to input data
         self._scrolled_txt.config(state='normal')
         radio_button_pressed = self._radio_var.get()
@@ -366,9 +383,6 @@ class BookingManagementGUI:
 
     def create_widgets(self):
         """Method to create all widgets required for the booking management GUI"""
-        # Set the general style used by widgets created from ttk
-        style = ttk.Style()
-        style.theme_use('aqua')
 
         ##### Desigining top radio buttons #####
         top_left = tk.Frame(self._win)
