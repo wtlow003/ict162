@@ -7,7 +7,7 @@ class Buyer(ABC):
         self._buyer_id = buyer_id
         self._name = name
         self._contact = contact
-        self._number_of_properties = 0 + number_of_properties
+        self._number_of_properties = 0
 
     @property
     def buyer_id(self):
@@ -31,7 +31,7 @@ class Buyer(ABC):
 
     @number_of_properties.setter
     def number_of_properties(self, new_value):
-        self._number_of_properties += new_value
+        self._number_of_properties = new_value
 
     @abstractmethod
     def get_absd_rate(self):
@@ -52,19 +52,15 @@ class Buyer(ABC):
 
 class SingaporeCitizen(Buyer):
 
-    def __init__(self, buyer_id, name, contact, number_of_properties):
-        super().__init__(buyer_id, name, contact, number_of_properties)
-
     def get_absd_rate(self):
-
-        if self._number_of_properties == 2:
+        rate = 0.0
+        if self._number_of_properties + 1 == 2:
             rate = 0.12
-        elif self._number_of_properties >= 3:
+        elif self._number_of_properties + 1 >= 3:
             rate = 0.15
-        else:
-            rate = 0.0
 
         return rate
+
 
     @classmethod
     def get_citizenship(cls):
@@ -121,7 +117,7 @@ class Transaction:
         return self._transaction_id
 
     def absd_payable(self):
-        return self._buyer.get_absd_rate() * self._transacted_property.property_value
+        return self._absd_rate * self._transacted_property.property_value
 
     def bsd_payable(self):
         total_payable = 0.0
@@ -141,7 +137,7 @@ class Transaction:
         return total_payable
 
     def __str__(self):
-        return (f"Transaction id: {self._transaction_id} ABSD: ${self.absd_payable():.2f} BSD: ${self.bsd_payable():.2f}\n"
+        return (f"Transaction id: {self._transaction_id} ABSD: ${self.absd_payable()} BSD: ${self.bsd_payable():.2f}\n"
                 f"\tProperty Address: {self._transacted_property.address} "
                 f"Value: ${self.transacted_property.property_value:.0f}\n"
                 f"\tBuyer Citizen: {self._buyer.get_citizenship()} "
@@ -158,9 +154,9 @@ class Registry:
         self._buyers = []
 
     def register_buyer(self, buyer):
-        buyer_ids = [id for id in self._buyers.buyer_id]
+        buyer_ids = [buyer.buyer_id for buyer in self._buyers]
         if buyer.buyer_id not in buyer_ids:
-            self._buyer.append(buyer)
+            self._buyers.append(buyer)
             return True
         return False
 
@@ -184,7 +180,7 @@ class Registry:
         return None
 
     def add_transaction(self, transaction):
-        transaction_ids = [id for id in self._transactions.transaction_id]
+        transaction_ids = [transc.transaction_id for transc in self._transactions]
         if transaction.transaction_id not in transaction_ids:
             self._transactions.append(transaction)
             return True
@@ -193,27 +189,37 @@ class Registry:
     def transaction_str(self):
         if self._transactions:
             transactions = '\n'.join([str(transc) for transc in self._transactions])
-            return ("Transaction List:\n"
-                    f"{transactions}")
+            return transactions
         else:
             return "No transaction in registry"
 
     def buyer_str(self):
         if self._buyers:
             buyers = '\n'.join([str(buyer) for buyer in self._buyers])
-            return ("Buyer list:\n"
-                    f"{buyers}")
+            return buyers
+        else:
+            return "No buyers in registry"
 
     def __str__(self):
-        return f"{self.buyer_str()}\n{self.transaction_str()}"
+        return (f"Buyer list:\n{self.buyer_str()}\n"
+                f"\nTransaction list:\n{self.transaction_str()}")
 
 
 if __name__ == "__main__":
 
     sc1 = SingaporeCitizen('T0001234X', 'Ann Chua', 92133123, 0)
     sc2 = SingaporeCitizen('T1234567F', 'Tom Teo', 98712123, 0)
-    print(sc1, sc2, sep='\n')
+    # print(sc1, sc2, sep='\n')
     p1 = TransactedProperty('12 Tampines Road', 1_500_000)
     t1 = Transaction(p1, sc2)
-    print(p1)
-    print(t1)
+    # print(p1)
+    # print(t1)
+    r = Registry()
+    # Adding two buyers
+    r.register_buyer(sc1)
+    r.register_buyer(sc2)
+    r.add_transaction(t1)
+    p2 = TransactedProperty('14 Tampines Road', 1_500_000)
+    t2 = Transaction(p2, sc2)
+    r.add_transaction(t2)
+    print(r)
