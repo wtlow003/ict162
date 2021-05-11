@@ -1,4 +1,4 @@
-from ABC import abstractmethod, ABC
+from abc import abstractmethod, ABC
 
 
 class Buyer(ABC):
@@ -12,6 +12,10 @@ class Buyer(ABC):
     @property
     def buyer_id(self):
         return self._buyer_id
+
+    @property
+    def name(self):
+        return self._name
 
     @property
     def contact(self):
@@ -33,8 +37,8 @@ class Buyer(ABC):
     def get_absd_rate(self):
         pass
 
-    @abstractmethod
     @classmethod
+    @abstractmethod
     def get_citizenship(cls):
         pass
 
@@ -48,7 +52,7 @@ class Buyer(ABC):
 
 class SingaporeCitizen(Buyer):
 
-    def __init__(self):
+    def __init__(self, buyer_id, name, contact, number_of_properties):
         super().__init__(buyer_id, name, contact, number_of_properties)
 
     def get_absd_rate(self):
@@ -62,6 +66,7 @@ class SingaporeCitizen(Buyer):
 
         return rate
 
+    @classmethod
     def get_citizenship(cls):
         return 'SC'
 
@@ -96,5 +101,50 @@ class Transaction:
         self._transacted_property = transacted_property
         self._buyer = buyer
         self._absd_rate = buyer.get_absd_rate()
-        self._transacted_property = self._next_transaction_id
+        self._transaction_id = type(self)._next_transaction_id
         type(self)._next_transaction_id += 1
+
+    @property
+    def buyer(self):
+        return self._buyer
+
+    @property
+    def transacted_property(self):
+        return self._transacted_property
+
+    def buyer_id(self):
+        return self._buyer.buyer_id
+
+    def transaction_id(self):
+        return self._transaction_id
+
+    def absd_payable(self):
+        return self._buyer.get_absd_rate() * self._transacted_property.property_value
+
+    def bsd_payable(self):
+        total_payable = 0.0
+        property_value = self._transacted_property.property_value
+
+        if property_value <= 180000:
+            total_payable += 0.1 * property_value
+        elif 180000 < property_value <= 360000:
+            total_payable += (0.1 * 180000 + 0.2 * (property_value - 180000))
+        elif 360000 < property_value <= 1000000:
+            total_payable += (0.1 * 180000 + 0.2 * 180000 + 0.3 * (property_value - 360000))
+        else:
+            total_payable += (0.1 * 180000 + 0.2 * 180000 + 0.3 * 640000 + 0.4 * (property_value - 1_000_000))
+
+        return total_payable
+
+    def __str__(self):
+        return (f"Transaction id: {self._transaction_id} ABSD: ${self.absd_payable():.2f} BSD: ${self.bsd_payable:.2f}\n"
+                f"\tProperty Address: {self._transacted_property.address} Value: ${self.transacted_property.property_value:.0f}\n"
+                f"\tBuyer Citizen: {self._buyer.get_citizenship()} id: {self._buyer.buyer_id} "
+                f"Name: {self._buyer.name} Contact: {self._buyer.contact} Number of properties: {self._buyer.number_of_properties}")
+
+
+if __name__ == "__main__":
+
+    sc1 = SingaporeCitizen('T0001234X', 'Ann Chua', 92133123, 0)
+    sc2 = SingaporeCitizen('T1234567F', 'Tom Teo', 98712123, 0)
+    print(sc1, sc2, sep='\n')
