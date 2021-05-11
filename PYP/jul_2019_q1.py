@@ -31,7 +31,7 @@ class Buyer(ABC):
 
     @number_of_properties.setter
     def number_of_properties(self, new_value):
-        self._number_of_properties = new_value
+        self._number_of_properties += new_value
 
     @abstractmethod
     def get_absd_rate(self):
@@ -103,6 +103,8 @@ class Transaction:
         self._absd_rate = buyer.get_absd_rate()
         self._transaction_id = type(self)._next_transaction_id
         type(self)._next_transaction_id += 1
+        # Increasing the buyer's properties count
+        buyer.number_of_properties += 1
 
     @property
     def buyer(self):
@@ -126,21 +128,27 @@ class Transaction:
         property_value = self._transacted_property.property_value
 
         if property_value <= 180000:
-            total_payable += 0.1 * property_value
+            total_payable += 0.01 * property_value
         elif 180000 < property_value <= 360000:
-            total_payable += (0.1 * 180000 + 0.2 * (property_value - 180000))
+            total_payable += (0.01 * 180000 + 0.02 * (property_value - 180000))
         elif 360000 < property_value <= 1000000:
-            total_payable += (0.1 * 180000 + 0.2 * 180000 + 0.3 * (property_value - 360000))
+            total_payable += (0.01 * 180000 + 0.02 * 180000 +
+                              0.03 * (property_value - 360000))
         else:
-            total_payable += (0.1 * 180000 + 0.2 * 180000 + 0.3 * 640000 + 0.4 * (property_value - 1_000_000))
+            total_payable += (0.01 * 180000 + 0.02 * 180000 +
+                              0.03 * 640000 + 0.04 * (property_value - 1_000_000))
 
         return total_payable
 
     def __str__(self):
-        return (f"Transaction id: {self._transaction_id} ABSD: ${self.absd_payable():.2f} BSD: ${self.bsd_payable:.2f}\n"
-                f"\tProperty Address: {self._transacted_property.address} Value: ${self.transacted_property.property_value:.0f}\n"
-                f"\tBuyer Citizen: {self._buyer.get_citizenship()} id: {self._buyer.buyer_id} "
-                f"Name: {self._buyer.name} Contact: {self._buyer.contact} Number of properties: {self._buyer.number_of_properties}")
+        return (f"Transaction id: {self._transaction_id} ABSD: ${self.absd_payable():.2f} BSD: ${self.bsd_payable():.2f}\n"
+                f"\tProperty Address: {self._transacted_property.address} "
+                f"Value: ${self.transacted_property.property_value:.0f}\n"
+                f"\tBuyer Citizen: {self._buyer.get_citizenship()} "
+                f"id: {self._buyer.buyer_id} "
+                f"Name: {self._buyer.name} "
+                f"Contact: {self._buyer.contact} "
+                f"Number of properties: {self._buyer.number_of_properties}")
 
 
 if __name__ == "__main__":
@@ -148,3 +156,7 @@ if __name__ == "__main__":
     sc1 = SingaporeCitizen('T0001234X', 'Ann Chua', 92133123, 0)
     sc2 = SingaporeCitizen('T1234567F', 'Tom Teo', 98712123, 0)
     print(sc1, sc2, sep='\n')
+    p1 = TransactedProperty('12 Tampines Road', 1_500_000)
+    t1 = Transaction(p1, sc2)
+    print(p1)
+    print(t1)
