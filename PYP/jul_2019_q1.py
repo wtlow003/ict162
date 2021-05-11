@@ -151,6 +151,37 @@ class Transaction:
                 f"Number of properties: {self._buyer.number_of_properties}")
 
 
+class Registry:
+
+    def __init__(self):
+        self._transactions = []
+        self._buyers = []
+
+    def register_buyer(self):
+        pass
+
+    def locate_buyer(self):
+        pass
+
+    def remove_buyer(self):
+        pass
+
+    def locate_transaction(self):
+        pass
+
+    def add_transaction(self):
+        pass
+
+    def transaction_str(self):
+        pass
+
+    def buyer_str(self):
+        pass
+
+    def __str__(self):
+        pass
+
+
 if __name__ == "__main__":
 
     sc1 = SingaporeCitizen('T0001234X', 'Ann Chua', 92133123, 0)
