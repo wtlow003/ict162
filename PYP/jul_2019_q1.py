@@ -157,29 +157,55 @@ class Registry:
         self._transactions = []
         self._buyers = []
 
-    def register_buyer(self):
-        pass
+    def register_buyer(self, buyer):
+        buyer_ids = [id for id in self._buyers.buyer_id]
+        if buyer.buyer_id not in buyer_ids:
+            self._buyer.append(buyer)
+            return True
+        return False
 
-    def locate_buyer(self):
-        pass
+    def locate_buyer(self, buyer_id):
+        for buyer in self._buyers:
+            if buyer_id == buyer.buyer_id:
+                return buyer
+        return None
 
-    def remove_buyer(self):
-        pass
+    def remove_buyer(self, buyer_id):
+        for buyer in self._buyers:
+            if buyer_id == buyer.buyer_id and buyer.number_of_properties == 0:
+                self._buyers.remove(buyer)
+                return True
+        return False
 
-    def locate_transaction(self):
-        pass
+    def locate_transaction(self, transaction_id):
+        for transaction in self._transactions:
+            if transaction_id == transaction.transaction_id:
+                return transaction
+        return None
 
-    def add_transaction(self):
-        pass
+    def add_transaction(self, transaction):
+        transaction_ids = [id for id in self._transactions.transaction_id]
+        if transaction.transaction_id not in transaction_ids:
+            self._transactions.append(transaction)
+            return True
+        return False
 
     def transaction_str(self):
-        pass
+        if self._transactions:
+            transactions = '\n'.join([str(transc) for transc in self._transactions])
+            return ("Transaction List:\n"
+                    f"{transactions}")
+        else:
+            return "No transaction in registry"
 
     def buyer_str(self):
-        pass
+        if self._buyers:
+            buyers = '\n'.join([str(buyer) for buyer in self._buyers])
+            return ("Buyer list:\n"
+                    f"{buyers}")
 
     def __str__(self):
-        pass
+        return f"{self.buyer_str()}\n{self.transaction_str()}"
 
 
 if __name__ == "__main__":
