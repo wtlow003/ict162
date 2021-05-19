@@ -222,4 +222,12 @@ if __name__ == "__main__":
     p2 = TransactedProperty('14 Tampines Road', 1_500_000)
     t2 = Transaction(p2, sc2)
     r.add_transaction(t2)
+    # registering another buyer
+    sc3 = SingaporeCitizen('T000898U', 'Ismail B', 92888866, 0)
+    # adding new transacted property
+    p3 = TransactedProperty('16 Tampines Road', 1_800_000)
+    # adding transaction
+    t3 = Transaction(p3, sc3)
+    # adding transaction into the registry
+    r.add_transaction(t3)
     print(r)
