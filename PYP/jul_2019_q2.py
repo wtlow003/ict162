@@ -20,6 +20,18 @@ class Expenditure:
         self._amount = amount
         self._expenditure_type = expenditure_type
 
+    @property
+    def expenditure_date(self):
+        pass
+
+    @property
+    def amount(self):
+        pass
+
+    @property
+    def expenditure_type(self):
+        pass
+
     def __str__(self):
         return (f"${self._amount:.2f} "
                 f"{self._expenditure_date} "
