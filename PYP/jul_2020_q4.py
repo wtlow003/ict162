@@ -43,18 +43,21 @@ class TourGui:
     def add_button(self, event):
         # enable the scrolltext for inserting
         self.output.config(state='normal')
-        curr_pax = self._numberOfPax
-        add_pax = int(self.numValue.get())
 
-        if (curr_pax + add_pax) > 25:
-            self.output.insert(tk.END,
-                            f"Adding {add_pax} to number of pax {curr_pax} "
-                            "will exceed 25. Cannot add\n")
-        else:
-            self._numberOfPax += add_pax
-            self.output.insert(tk.END,
-                               f"Added {add_pax} to number of pax {curr_pax} "
-                               f"Total: {self._numberOfPax}\n")
+        try:
+            curr_pax = self._numberOfPax
+            add_pax = int(self.numValue.get())
+            if (curr_pax + add_pax) > 25:
+                self.output.insert(tk.END,
+                                f"Adding {add_pax} to number of pax {curr_pax} "
+                                "will exceed 25. Cannot add\n")
+            else:
+                self._numberOfPax += add_pax
+                self.output.insert(tk.END,
+                                f"Added {add_pax} to number of pax {curr_pax} "
+                                f"Total: {self._numberOfPax}\n")
+        except ValueError:
+            self.output.insert(tk.END, f"Please check if an empty or invalid value is given.")
         # clear entry box
         self.numValue_Ety.delete(0, tk.END)
         self.output.config(state='disable')
@@ -62,18 +65,20 @@ class TourGui:
     def remove_button(self, event):
         # enable the scrolltext for inserting
         self.output.config(state='normal')
-        curr_pax = self._numberOfPax
-        remove_pax = int(self.numValue.get())
-
-        if (curr_pax - remove_pax) < 5:
-            self.output.insert(tk.END,
-                            f"Removing {remove_pax} to number of pax {curr_pax} "
-                            "will be lower than 5. Cannot remove\n")
-        else:
-            self._numberOfPax -= remove_pax
-            self.output.insert(tk.END,
-                               f"Remove {remove_pax} to number of pax {curr_pax} "
-                               f"Total: {self._numberOfPax}\n")
+        try:
+            curr_pax = self._numberOfPax
+            remove_pax = int(self.numValue.get())
+            if (curr_pax - remove_pax) < 5:
+                self.output.insert(tk.END,
+                                f"Removing {remove_pax} to number of pax {curr_pax} "
+                                "will be lower than 5. Cannot remove\n")
+            else:
+                self._numberOfPax -= remove_pax
+                self.output.insert(tk.END,
+                                f"Remove {remove_pax} to number of pax {curr_pax} "
+                                f"Total: {self._numberOfPax}\n")
+        except ValueError:
+            self.output.insert(tk.END, f"Please check if an empty or invalid value is given.")
         # clear entry box
         self.numValue_Ety.delete(0, tk.END)
         self.output.config(state='disable')
