@@ -33,8 +33,50 @@ class TourGui:
         actionFrame.grid(column=0, row=2, columnspan=2)
         self.add_btn = ttk.Button(actionFrame, text="Add Pax")
         self.add_btn.pack(side = tk.LEFT)
+        # binding the command
+        self.add_btn.bind('<Button>', self.add_button)
+
         self.remove_btn = ttk.Button(actionFrame, text="Remove Pax")
         self.remove_btn.pack(side = tk.LEFT)
+        self.remove_btn.bind('<Button>', self.remove_button)
+
+    def add_button(self, event):
+        # enable the scrolltext for inserting
+        self.output.config(state='normal')
+        curr_pax = self._numberOfPax
+        add_pax = int(self.numValue.get())
+
+        if (curr_pax + add_pax) > 25:
+            self.output.insert(tk.END,
+                            f"Adding {add_pax} to number of pax {curr_pax} "
+                            "will exceed 25. Cannot add\n")
+        else:
+            self._numberOfPax += add_pax
+            self.output.insert(tk.END,
+                               f"Added {add_pax} to number of pax {curr_pax} "
+                               f"Total: {self._numberOfPax}\n")
+        # clear entry box
+        self.numValue_Ety.delete(0, tk.END)
+        self.output.config(state='disable')
+
+    def remove_button(self, event):
+        # enable the scrolltext for inserting
+        self.output.config(state='normal')
+        curr_pax = self._numberOfPax
+        remove_pax = int(self.numValue.get())
+
+        if (curr_pax - remove_pax) < 5:
+            self.output.insert(tk.END,
+                            f"Removing {remove_pax} to number of pax {curr_pax} "
+                            "will be lower than 5. Cannot remove\n")
+        else:
+            self._numberOfPax -= remove_pax
+            self.output.insert(tk.END,
+                               f"Remove {remove_pax} to number of pax {curr_pax} "
+                               f"Total: {self._numberOfPax}\n")
+        # clear entry box
+        self.numValue_Ety.delete(0, tk.END)
+        self.output.config(state='disable')
 
 
 if __name__ == '__main__':
