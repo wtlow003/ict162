@@ -80,7 +80,25 @@ class ExpenditureList:
         return [exp for exp in expenditures if exp.expenditure_type == expenditure_type]
 
     def get_expenditures_amount(self, expenditure_type, days):
-        pass
+        if days > 0:
+            last_prev_date = datetime.now() - datetime.timedelta(days=days)
+            expenditures_amt = sum(
+                expenditure.amount
+                for expenditure in self._expenditures
+                if expenditure.expenditure_date >= last_prev_date and
+                expenditure.expenditure_type == expenditure.type
+            )
+
+        elif days < 0:
+            raise ExpenditureException("Days {days} cannot be negative.", 'Date')
+        else:
+            expenditures_amt = sum(
+                expenditure.amount
+                for expenditure in self._expenditures
+                if expenditure.expenditure_type == expenditure.type
+            )
+
+        return expenditures_amt
 
     def add_expenditure(self, expenditure_date, amount, expenditure_type):
         if expenditure_type not in type(self)._types:
