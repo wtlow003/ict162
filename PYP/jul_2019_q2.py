@@ -64,14 +64,31 @@ class ExpenditureList:
     def expenditure_types(cls):
         return cls._types
 
-    def get_expenditures(self, expenditure_type, days):
-        pass
+    def get_expenditures(self, expenditure_type, days=0):
+        expenditures = []
+        if days > 0:
+            last_prev_date = datetime.now() - datetime.timedelta(days=days)
+            for expenditure in self._expenditures:
+                if expenditure.expenditure_date >= last_prev_date:
+                    expenditures.append(expenditure)
+        elif days < 0:
+            raise ExpenditureException("Days {days} cannot be negative.", 'Date')
+        else:
+            expenditures = self._expenditures
+
+        # filtering for expenditure type
+        return [exp for exp in expenditures if exp.expenditure_type == expenditure_type]
 
     def get_expenditures_amount(self, expenditure_type, days):
         pass
 
     def add_expenditure(self, expenditure_date, amount, expenditure_type):
-        pass
+        if expenditure_type not in type(self)._types:
+            valid_types = ' '.join(type(self)._types)
+            raise ExpenditureException(f"Expenditure type {expenditure_type} "
+                                       f"is not one of the valid types choices: {valid_types}")
+        else:
+            self._expenditures.append(Expenditure(expenditure_date, amount, expenditure_type))
 
     def __str__(self):
         pass
