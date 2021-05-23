@@ -188,15 +188,13 @@ class Registry:
 
     def transaction_str(self):
         if self._transactions:
-            transactions = '\n'.join([str(transc) for transc in self._transactions])
-            return transactions
+            return '\n'.join(str(transc) for transc in self._transactions)
         else:
             return "No transaction in registry"
 
     def buyer_str(self):
         if self._buyers:
-            buyers = '\n'.join([str(buyer) for buyer in self._buyers])
-            return buyers
+            return '\n'.join(str(buyer) for buyer in self._buyers)
         else:
             return "No buyers in registry"
 
