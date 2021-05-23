@@ -79,7 +79,7 @@ class ExpenditureList:
         # filtering for expenditure type
         return [exp for exp in expenditures if exp.expenditure_type == expenditure_type]
 
-    def get_expenditures_amount(self, expenditure_type, days):
+    def get_expenditures_amount(self, expenditure_type, days=0):
         if days > 0:
             last_prev_date = datetime.now() - datetime.timedelta(days=days)
             expenditures_amt = sum(
@@ -109,7 +109,14 @@ class ExpenditureList:
             self._expenditures.append(Expenditure(expenditure_date, amount, expenditure_type))
 
     def __str__(self):
-        pass
+        overall_amt = 0
+        for exp_type in type(self)._types:
+            expenditures = self.get_expenditures(exp_type)
+            ind_exps = '\n'.join(expenditures)
+            print(ind_exps)
+            print(f"Total for {exp_type} = ${self.get_expenditures_amount(exp_type)}")
+            overall_amt += self.get_expenditures_amount(exp_type)
+        print(f"Overall Total = {overall_amt}")
 
 if __name__ == '__main__':
     # testing Expenditure
