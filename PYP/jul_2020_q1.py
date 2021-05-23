@@ -55,10 +55,7 @@ if __name__ == '__main__':
 
     print(i1, i2, sep='\n')
 
-    if i1.on_sales:
-        i1.on_sales = False
-    else:
-        i1.on_sales = True
+    i1.on_sales = not i1.on_sales
 
     print(i1, i2, sep='\n')
 
