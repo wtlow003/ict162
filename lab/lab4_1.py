@@ -62,7 +62,7 @@ if __name__ == '__main__':
     d.add(5)
     # remove - 11 not allowed as negative
     d.remove(11)
-    # remove 5 
+    # remove 5
     d.remove(5)
     print(d._box.number_of_items)
     # add back 5
