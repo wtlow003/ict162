@@ -6,3 +6,6 @@
 
 # Ignore Cache
 __pycache__/
+
+# Ignore TOA answers
+/toa
