@@ -22,10 +22,12 @@ class Reservation(ABC):
         pass
 
     def __str__(self):
-        return (f"Reservation Id: {self._reservation_id} Email: {self._cust_email} "
-                f"Name: {self._cust_name} Reservation Date: {self._reservation_date.strftime('%d/%m/%Y')}"
-                f"{self._course_schedule}"
-                f"\nCourse fee: {self.course_fee()}")
+        return (
+            f"Reservation Id: {self._reservation_id} Email: {self._cust_email} "
+            f"Name: {self._cust_name} Reservation Date: {self._reservation_date.strftime('%d/%m/%Y')}"
+            f"{self._course_schedule}"
+            f"\nCourse fee: {self.course_fee()}"
+        )
 
 
 class IndividualReservation(Reservation):
@@ -56,10 +58,10 @@ class CorporateReservation(Reservation):
         return self._course_schedule.course_fee() * (1 - type(self)._discount)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # making a individual reservation without hitting discount age
-    c = Course('PY214', 'Introduction to Python', 2000)
-    i = Instructor('xxx@yyy.com', 'Joe Wong', 150)
+    c = Course("PY214", "Introduction to Python", 2000)
+    i = Instructor("xxx@yyy.com", "Joe Wong", 150)
     cs = CourseSchedule(c, i, datetime(2020, 6, 1), 3)
-    ir = IndividualReservation('a@b.com', 'John', 1950, cs)
+    ir = IndividualReservation("a@b.com", "John", 1950, cs)
     print(ir)

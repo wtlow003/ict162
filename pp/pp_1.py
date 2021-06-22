@@ -3,7 +3,6 @@ from datetime import datetime
 
 
 class Course:
-
     def __init__(self, code, title, dev_cost):
         self._code = code
         self._title = title
@@ -22,7 +21,6 @@ class Course:
 
 
 class Instructor:
-
     def __init__(self, email, name, rate_per_day):
         self._email = email
         self._name = name
@@ -75,15 +73,17 @@ class CourseSchedule:
         return self._instructor.email
 
     def __str__(self):
-        return (f"Schedule Id: {self._schedule_id} "
-                f"Start Date: {self._start_date.strftime('%d/%m/%Y')} "
-                f"Duration: {self._duration} days"
-                f"\n{self._course}"
-                f"\n{self._instructor}")
+        return (
+            f"Schedule Id: {self._schedule_id} "
+            f"Start Date: {self._start_date.strftime('%d/%m/%Y')} "
+            f"Duration: {self._duration} days"
+            f"\n{self._course}"
+            f"\n{self._instructor}"
+        )
 
 
-if __name__ == '__main__':
-    c = Course('PY214', 'Introduction to Python', 2000)
-    i = Instructor('xxx@yyy.com', 'Joe Wong', 150)
+if __name__ == "__main__":
+    c = Course("PY214", "Introduction to Python", 2000)
+    i = Instructor("xxx@yyy.com", "Joe Wong", 150)
     s = CourseSchedule(c, i, datetime(2020, 6, 1), 3)
     print(s)

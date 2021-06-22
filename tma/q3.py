@@ -426,9 +426,7 @@ class Library:
     """
 
     def __init__(self):
-        """The `__init__` method initialises three instance attributes.
-
-        """
+        """The `__init__` method initialises three instance attributes."""
 
         # :dict: A dictionary containing members, with key as `member_id`
         self._members = {}
@@ -925,7 +923,7 @@ def initialise_library(members, items, item_copies, library):
 
 def main():
     """Create, initialise and present menu for Library object using
-        LibraryApplication menu
+    LibraryApplication menu
 
     """
 

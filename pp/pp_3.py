@@ -4,7 +4,6 @@ from datetime import datetime
 
 
 class Course:
-
     def __init__(self, code, title, dev_cost):
         self._code = code
         self._title = title
@@ -23,7 +22,6 @@ class Course:
 
 
 class Instructor:
-
     def __init__(self, email, name, rate_per_day):
         self._email = email
         self._name = name
@@ -80,15 +78,16 @@ class CourseSchedule:
         return self._instructor.email
 
     def __str__(self):
-        return (f"Schedule Id: {self._schedule_id} "
-                f"Start Date: {self._start_date.strftime('%d/%m/%Y')} "
-                f"Duration: {self._duration} days"
-                f"\n{self._course}"
-                f"\n{self._instructor}")
+        return (
+            f"Schedule Id: {self._schedule_id} "
+            f"Start Date: {self._start_date.strftime('%d/%m/%Y')} "
+            f"Duration: {self._duration} days"
+            f"\n{self._course}"
+            f"\n{self._instructor}"
+        )
 
 
 class TraininingProvider:
-
     def __init__(self, name):
         self._name = name
         self._course_schedules = {}
@@ -109,17 +108,20 @@ class TraininingProvider:
         course_sched_ids = self._course_schedules.keys()
         if course_schedule_id not in course_sched_ids:
             raise Exception("Course schedule Id not found!")
-        elif (datetime.now() - self._course_schedules[course_schedule_id].start_date).days < 3:
+        elif (
+            datetime.now() - self._course_schedules[course_schedule_id].start_date
+        ).days < 3:
             raise Exception("Course schedule start date too close to remove!")
 
     def __str__(self):
-        return '\n'.join(str(item) for item in self._course_schedules.values())
+        return "\n".join(str(item) for item in self._course_schedules.values())
 
-if __name__ == '__main__':
-    tp = TraininingProvider('Coding Ace Pte. Ltd.')
+
+if __name__ == "__main__":
+    tp = TraininingProvider("Coding Ace Pte. Ltd.")
     print(tp)
-    c = Course('PY214', 'Introduction to Python', 2000)
-    i = Instructor('xxx@yyy.com', 'Joe Wong', 150)
+    c = Course("PY214", "Introduction to Python", 2000)
+    i = Instructor("xxx@yyy.com", "Joe Wong", 150)
 
     try:
         # fail as it does not start 10 days later
@@ -130,6 +132,6 @@ if __name__ == '__main__':
         tp.add_course_schedule(c, i, datetime(2021, 6, 10), 1)
         print(tp)
         # trying to remove non-existent sched_id
-        tp.remove_course_schedule('PY214_2')
+        tp.remove_course_schedule("PY214_2")
     except Exception as e:
         print(e)
