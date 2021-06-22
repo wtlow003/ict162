@@ -169,11 +169,13 @@ class Staycation:
         return self.cost_per_night() < other.cost_per_night()
 
     def __str__(self):
-        return (f"{self._hotel_name} "
-                f"Nights: {self._nights} "
-                f"Current Price: ${self._cost:.0f} or "
-                f"${self.cost_per_night():.2f} per night "
-                f"Voucher allowed: {'Yes' if self._voucher_allowed else 'No'}")
+        return (
+            f"{self._hotel_name} "
+            f"Nights: {self._nights} "
+            f"Current Price: ${self._cost:.0f} or "
+            f"${self.cost_per_night():.2f} per night "
+            f"Voucher allowed: {'Yes' if self._voucher_allowed else 'No'}"
+        )
 
 
 # Q1(c)
@@ -199,7 +201,7 @@ class Booking:
         self._customer = customer
         self._staycation = staycation
         self._check_in_date = check_in_date
-        self._cost = staycation.cost    # cost of staycation at time of booking
+        self._cost = staycation.cost  # cost of staycation at time of booking
 
     @property
     def customer(self):
@@ -287,47 +289,53 @@ class Booking:
     def __str__(self):
         hotel_name = self._staycation.hotel_name
         nights = self._staycation.nights
-        cost = self._cost    # using Booking's ._cost for initialised cost value
-        cost_per_night = cost / nights   # initialised cost to prevent changes
+        cost = self._cost  # using Booking's ._cost for initialised cost value
+        cost_per_night = cost / nights  # initialised cost to prevent changes
         voucher_allowed = self._staycation.voucher_allowed
-        check_in_date = self._check_in_date.strftime('%d %b %Y')
-        check_out_date = self.check_out_date().strftime('%d %b %Y')
+        check_in_date = self._check_in_date.strftime("%d %b %Y")
+        check_out_date = self.check_out_date().strftime("%d %b %Y")
         customer_name = self._customer.name
         customer_contact = self._customer.contact
 
-        return (f"{hotel_name} "
-                f"Nights: {nights} "
-                f"Current Price: ${cost:.0f} or ${cost_per_night:.2f} per night "
-                f"Voucher allowed: {'Yes' if voucher_allowed else 'No'}\n"
-                f"Booked at: ${cost:.0f} "
-                f"Check-in Date: {check_in_date} "
-                f"Check-out Date: {check_out_date}\n"
-                f"{customer_name} {customer_contact}")
+        return (
+            f"{hotel_name} "
+            f"Nights: {nights} "
+            f"Current Price: ${cost:.0f} or ${cost_per_night:.2f} per night "
+            f"Voucher allowed: {'Yes' if voucher_allowed else 'No'}\n"
+            f"Booked at: ${cost:.0f} "
+            f"Check-in Date: {check_in_date} "
+            f"Check-out Date: {check_out_date}\n"
+            f"{customer_name} {customer_contact}"
+        )
 
 
 def main():
     # Q1(d)(i)
     print("Creating Customer object...\n")
-    c1 = Customer('Peter', '99998888')
+    c1 = Customer("Peter", "99998888")
     print(c1)
     # changing c1's number to 99998844
     print("Changing Peter's from 99998888 to 99998844.\n")
     previous_contact = c1.contact
     # Changing to new contact
-    c1.contact = '99998844'
+    c1.contact = "99998844"
     print(c1)
-    print(f"The customer: {c1.name} has changed contact from "
-          f"{previous_contact} to {c1.contact}\n")
+    print(
+        f"The customer: {c1.name} has changed contact from "
+        f"{previous_contact} to {c1.contact}\n"
+    )
 
     # Q1(d)(ii)
     # Creating two Staycation objects
     print("\nCreating two Staycation objects...\n")
-    s1 = Staycation('Grand Marina', 2, 398, False)
-    s2 = Staycation('Hotel Bugis', 1, 168)
-    print(s1, s2, sep='\n')
+    s1 = Staycation("Grand Marina", 2, 398, False)
+    s2 = Staycation("Hotel Bugis", 1, 168)
+    print(s1, s2, sep="\n")
     # Checking if first staycation is cheaper than second
-    print("Is the first staycation cheaper than the second?: "
-          f"{'Yes' if s1.is_cheaper(s2) else 'No'}\n")
+    print(
+        "Is the first staycation cheaper than the second?: "
+        f"{'Yes' if s1.is_cheaper(s2) else 'No'}\n"
+    )
 
     # Q1(d)(iii)
     # Creating Booking object
@@ -336,14 +344,18 @@ def main():
     print(b1)
 
     # Updating the cost of staycation from $398 to $438
-    print("\nComputing cost difference between time of "
-          "booking vs. latest staycation cost...\n")
+    print(
+        "\nComputing cost difference between time of "
+        "booking vs. latest staycation cost...\n"
+    )
     print("Changing staycation cost to $438.")
     s1.cost = 438.00
-    print(f"The cost at the point of booking is ${b1.cost:.2f}. "
-          "The computed cost difference with the latest cost of staycation is "
-          f"${b1.cost_difference_from_current():.2f}.")
+    print(
+        f"The cost at the point of booking is ${b1.cost:.2f}. "
+        "The computed cost difference with the latest cost of staycation is "
+        f"${b1.cost_difference_from_current():.2f}."
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

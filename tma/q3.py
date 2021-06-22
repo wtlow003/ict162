@@ -125,13 +125,14 @@ class Member:
         if title:
             for loan in self._loans:
                 # check for matching title in loans and return date available
-                if (loan.loan_title().lower() == title.lower()) and (loan.return_date is not None):
+                if (loan.loan_title().lower() == title.lower()) and (
+                    loan.return_date is not None
+                ):
                     past_loans.append(loan)
         # no title is supplied
         else:
             # check for loan with return date
-            past_loans = [
-                loan for loan in self._loans if loan.return_date is not None]
+            past_loans = [loan for loan in self._loans if loan.return_date is not None]
 
         return past_loans
 
@@ -152,13 +153,14 @@ class Member:
         # if title is supplied
         if title:
             for loan in self._loans:
-                if (loan.loan_title().lower() == title.lower()) and (loan.return_date is None):
+                if (loan.loan_title().lower() == title.lower()) and (
+                    loan.return_date is None
+                ):
                     present_loans.append(loan)
         # no title is supplied
         else:
             # check for the loan with no return date
-            present_loans = [
-                loan for loan in self._loans if loan.return_date is None]
+            present_loans = [loan for loan in self._loans if loan.return_date is None]
 
         return present_loans
 
@@ -185,11 +187,9 @@ class Member:
         if unreturned_loans:
             # Return first unreturned loan
             loan = unreturned_loans[0]
-        # if not present loans, return last the returned loan
-        elif not unreturned_loans and returned_loans:
+        elif returned_loans:
             # sort the returned loan by date and return the last matched item
-            returned_loans.sort(
-                key=lambda loan: loan.return_date, reverse=True)
+            returned_loans.sort(key=lambda loan: loan.return_date, reverse=True)
             # last returned matched item (latest date)
             loan = returned_loans[0]
 
@@ -232,13 +232,15 @@ class Member:
             raise LibraryException("Loan quota has been reached")
         # if member has existing amount owed
         if self._amount_owed > 0:
-            raise LibraryPaymentException(self._amount_owed,
-                                          f"You have ${self._amount_owed:.2f} "
-                                          "outstanding fines. "
-                                          "Do you want wish to pay your fines now? (y/n): ")
+            raise LibraryPaymentException(
+                self._amount_owed,
+                f"You have ${self._amount_owed:.2f} "
+                "outstanding fines. "
+                "Do you want wish to pay your fines now? (y/n): ",
+            )
 
-        loan = Loan(item_copy, date_borrowed)       # creating the loan
-        self._loans.append(loan)        # adding to the member's loans
+        loan = Loan(item_copy, date_borrowed)  # creating the loan
+        self._loans.append(loan)  # adding to the member's loans
 
         return True
 
@@ -268,13 +270,15 @@ class Member:
         # if item copy is not a present loan but loaned previously
         if (not present_loans) and past_loans:
             raise LibraryException(
-                f"Item: {title} has been returned on {matched_loans.return_date}")
+                f"Item: {title} has been returned on {matched_loans.return_date}"
+            )
         # if item is a present loan and the renew date is after the due date
         if matched_loans and (matched_loans.due_date < renew_date):
-            renew_date = renew_date.strftime('%d %b %Y')
-            due_date = matched_loans.due_date.strftime('%d %b %Y')
+            renew_date = renew_date.strftime("%d %b %Y")
+            due_date = matched_loans.due_date.strftime("%d %b %Y")
             raise LibraryException(
-                f"Date of renewal on {renew_date} exceed the existing due date on {due_date}")
+                f"Date of renewal on {renew_date} exceed the existing due date on {due_date}"
+            )
         # if no exception is raised, loan can be renewed
         matched_loans.renew(renew_date)
 
@@ -309,13 +313,14 @@ class Member:
         # if item copy is not a present loan but loaned previously
         if (not present_loans) and past_loans:
             raise LibraryException(
-                f"Item has been returned on {matched_loans.return_date}")
+                f"Item has been returned on {matched_loans.return_date}"
+            )
 
-        matched_loans.return_date = return_date     # Update with return date
+        matched_loans.return_date = return_date  # Update with return date
         # obtaining fines incurred, if late, else $0 fines.
         fines_incurred = matched_loans.get_fines()
         if fines_incurred:
-            self._amount_owed += fines_incurred     # Fines added to `amount_owed`
+            self._amount_owed += fines_incurred  # Fines added to `amount_owed`
 
         return True
 
@@ -337,14 +342,16 @@ class Member:
 
         # if member intends to pay less than 0
         if amount <= 0:
-            raise LibraryPaymentException(amount,
-                                          f"You owed ${self._amount_owed:.2f}. "
-                                          f"Please pay an amount that is more than $0")
+            raise LibraryPaymentException(
+                amount,
+                f"You owed ${self._amount_owed:.2f}. "
+                f"Please pay an amount that is more than $0",
+            )
         # Change does not exists if you pay less than required
         change = amount - self._amount_owed if amount > self._amount_owed else 0
         # Maximum payable fines is exisitng outstanding fines
         # Only payable until the `_amount_owed` == 0
-        self._amount_owed -= (amount - change)
+        self._amount_owed -= amount - change
 
         return change
 
@@ -363,10 +370,10 @@ class Member:
             default to [`self._loans`]
 
         """
-        loan_str = '\n'.join([str(loan) for loan in self._loans])   # all loans
+        loan_str = "\n".join(str(loan) for loan in self._loans)
         if loans is not None:
             # Selected loans
-            loan_str = '\n'.join([str(loan) for loan in loans])
+            loan_str = "\n".join(str(loan) for loan in loans)
 
         return loan_str
 
@@ -377,12 +384,14 @@ class Member:
         past_loans = self.past_loans()
         present_loans = self.present_loans()
 
-        return (f"\nId: {self._member_id} {self._name} Owed: ${amount_owed:.2f}"
-                f"\nPast loans:"
-                f"\n{'No past loans' if not past_loans else self.loan_str(past_loans)}"
-                f"\nPresent loans:"
-                f"\n{'No outstanding loans' if not present_loans else self.loan_str(present_loans)}"
-                f"\nOutstanding loans: {self.count_current_loan()}")
+        return (
+            f"\nId: {self._member_id} {self._name} Owed: ${amount_owed:.2f}"
+            f"\nPast loans:"
+            f"\n{'No past loans' if not past_loans else self.loan_str(past_loans)}"
+            f"\nPresent loans:"
+            f"\n{'No outstanding loans' if not present_loans else self.loan_str(present_loans)}"
+            f"\nOutstanding loans: {self.count_current_loan()}"
+        )
 
 
 # Q3(B)(ii)
@@ -453,7 +462,7 @@ class Library:
     def remove_member(self, member_id):
         """Remove a member from `_members` based on the `member_id`"""
 
-        return self._members.pop(member_id, None)   # Return None if no member
+        return self._members.pop(member_id, None)  # Return None if no member
 
     def search_member(self, member_id):
         """Search a member based on `member_id` from `_members`"""
@@ -483,37 +492,33 @@ class Library:
 
         """
 
-        available_item_copies = [copy for copy in self._copy_items
-                                 if copy.available is True]
-        return available_item_copies
+        return [copy for copy in self._copy_items if copy.available is True]
 
     def copy_item_str(self, copy_item_list=None):
         """String representation of item copies in the Library class object"""
 
         if copy_item_list:
-            copy_items = '\n'.join([str(copy) for copy in copy_item_list])
+            copy_items = "\n".join(str(copy) for copy in copy_item_list)
         else:
-            copy_items = '\n'.join([str(copy) for copy in self._copy_items])
+            copy_items = "\n".join(str(copy) for copy in self._copy_items)
         return f"{copy_items}"
 
     def member_str(self):
         """String representation of members in the Library class object"""
 
-        members = '\n'.join([str(mem) for mem in self._members.values()])
+        members = "\n".join(str(mem) for mem in self._members.values())
         return f"{members}"
 
     def item_str(self):
         """String representation of items in the Library class object"""
 
-        items = '\n'.join([str(item) for item in self._items.values()])
+        items = "\n".join(str(item) for item in self._items.values())
         return f"{items}\n"
 
     def __str__(self):
         """String representation of a Library object"""
 
-        return (f"{self.item_str()}"
-                f"\n{self.copy_item_str()}"
-                f"\n{self.member_str()}")
+        return f"{self.item_str()}" f"\n{self.copy_item_str()}" f"\n{self.member_str()}"
 
 
 # Q3(E)
@@ -557,8 +562,7 @@ class LibraryApplication:
 
         # Loop until member keys in the correct date format of 'dd/mm/yyyy'
         while True:
-            requested_date = input(
-                f"Enter {date_type} date in dd/mm/yyyy: ").strip()
+            requested_date = input(f"Enter {date_type} date in dd/mm/yyyy: ").strip()
             date_format = "%d/%m/%Y"
             try:
                 requested_date = datetime.strptime(requested_date, date_format)
@@ -594,52 +598,55 @@ class LibraryApplication:
         # https://medium.com/lemon-code/guard-clauses-3bc0cd96a2d3
         # Do not enter check for copy id if quota reached
         if member and member.quota_reached():
-            print(f"Current number of loans: {member.count_current_loan()} "
-                  f"Quota: {member.get_loan_quota()}")
+            print(
+                f"Current number of loans: {member.count_current_loan()} "
+                f"Quota: {member.get_loan_quota()}"
+            )
             print("Quota reached. No more loan allowed")
             print(member)
             return
 
         # If member has not yet reach loan quota
         if member:
-            print(f"Current number of loans: {member.count_current_loan()} "
-                  f"Quota: {member.get_loan_quota()}")
+            print(
+                f"Current number of loans: {member.count_current_loan()} "
+                f"Quota: {member.get_loan_quota()}"
+            )
             # Run validity check and print out statement for -> date used for borrowing
-            borrow_date = self.date_check('borrow')
+            borrow_date = self.date_check("borrow")
             # Executing the loop until the the member maxed out their quota
             while not member.quota_reached():
                 try:
                     # Display all the available items in the library
                     available_items = self._library.get_available_copy_items()
-                    available_items_ids = [
-                        avail.copy_id for avail in available_items]
+                    available_items_ids = [avail.copy_id for avail in available_items]
                     print("Available items")
                     print(self._library.copy_item_str(available_items))
 
                     # Get user option for items to borrow, else exit current menu option
-                    copy_item_choice = input(
-                        "Enter the copy id or 0 to end: ").strip()
+                    copy_item_choice = input("Enter the copy id or 0 to end: ").strip()
                     # Break out of the loop if user choose to exit
-                    if copy_item_choice == '0':
+                    if copy_item_choice == "0":
                         break
                     # If user enters an invalid copy item id
                     elif int(copy_item_choice) not in available_items_ids:
                         print("Invalid copy id - does not match available items")
                     else:
                         item_copy = self._library.search_copy_item(
-                            int(copy_item_choice))
+                            int(copy_item_choice)
+                        )
                         member.borrow_item(item_copy, borrow_date)
                         print(f"Sucessfully borrowed {item_copy.item.title}")
                 # raise payment exceptions if business rules is violated regarding renewal
                 except LibraryPaymentException as pe:
                     payment_choice = input(pe).strip()
-                    if payment_choice.lower() == 'y':
+                    if payment_choice.lower() == "y":
                         # make the deduct from amount owed, assume full amount paid
                         member.pay(member.amount_owed)
                         member.borrow_item(item_copy, borrow_date)
                         print(f"Sucessfully borrowed {item_copy.item.title}")
                     # break out of the loop if users decides not to pay (cannot borrow)
-                    elif payment_choice.lower() == 'n':
+                    elif payment_choice.lower() == "n":
                         print("Please pay your fines first before borrowing")
                         break
                 except ValueError:
@@ -663,7 +670,7 @@ class LibraryApplication:
             try:
                 title = input("Enter title: ").strip()
                 # Run validity check and print out statement for -> date used for renewal
-                renew_date = self.date_check('renew')
+                renew_date = self.date_check("renew")
                 # If title can be renewed return success message else raise appropriate exceptions
                 if member.renew(title, renew_date):
                     print(f"Successfully renewed {title.title()}")
@@ -689,7 +696,7 @@ class LibraryApplication:
         # If member exists
         if member:
             # Run validity check and print out statement for -> date used for returning
-            return_date = self.date_check('return')
+            return_date = self.date_check("return")
             # Allow users to return all loans until no loans left or voluntary exit out of option
             while member.count_current_loan() > 0:
                 title = input("Enter title or <ENTER> to end: ").strip()
@@ -728,7 +735,7 @@ class LibraryApplication:
                 while True:
                     amount = input("Enter amount: ").strip()
                     # Prevent negative values for failing conditions due to '-'
-                    temp_amount = amount.strip('-')
+                    temp_amount = amount.strip("-")
                     # Making sure it is not digits and check for presence of alphabets
                     if not temp_amount.isdigit() and temp_amount.isalnum():
                         print(f"{amount} is not a valid amount")
@@ -738,8 +745,10 @@ class LibraryApplication:
                         break
                 # Making the payment reflect for the member
                 change = member.pay(float(amount))
-                print(f"Sucessfully paid ${amount}. "
-                      f"Current balance: ${member.amount_owed:.2f}")
+                print(
+                    f"Sucessfully paid ${amount}. "
+                    f"Current balance: ${member.amount_owed:.2f}"
+                )
                 # If change is availabe, return the change
                 if change:
                     print(f"Your change: ${change:.2f}")
@@ -797,17 +806,23 @@ def populated_items():
     """
 
     # Creating the two member
-    members = [Member('S123', 'John'), JuniorMember('J111', 'Mary')]
+    members = [Member("S123", "John"), JuniorMember("J111", "Mary")]
 
     # Creating the list of all the items in the library
-    items = [Book('The Road to Forget', 2020, 35.00, ['Justin Grave', 'Tom Aplesson']),
-             Media('Asia Food and Culture', 2019, 30.00),
-             Book('Dark Knight', 2010, 29.00, ['Allyson Day']),
-             Media('Powerpoint Presentation Tips', 2020, 15.00)]
+    items = [
+        Book("The Road to Forget", 2020, 35.00, ["Justin Grave", "Tom Aplesson"]),
+        Media("Asia Food and Culture", 2019, 30.00),
+        Book("Dark Knight", 2010, 29.00, ["Allyson Day"]),
+        Media("Powerpoint Presentation Tips", 2020, 15.00),
+    ]
 
     # Indicating no. of copies for items in the library
-    item_copies = {'The Road to Forget': 2, 'Asia Food and Culture': 3,
-                   'Dark Knight': 2, 'Powerpoint Presentation Tips': 2}
+    item_copies = {
+        "The Road to Forget": 2,
+        "Asia Food and Culture": 3,
+        "Dark Knight": 2,
+        "Powerpoint Presentation Tips": 2,
+    }
 
     return members, items, item_copies
 
@@ -851,12 +866,16 @@ def initialise_library(members, items, item_copies, library):
             library.add_copy_item(item)
 
     # Key members_id and actual member object
-    john = library.search_member('S123')
-    mary = library.search_member('J111')
+    john = library.search_member("S123")
+    mary = library.search_member("J111")
 
-    print("John borrows 4 items on 1 March 2021 and Mary borrows 1 item on 3 March 2021.")
-    item_copies_loaned = [(john, datetime(2021, 3, 1), [1, 3, 6, 8]),
-                          (mary, datetime(2021, 3, 3), [9])]
+    print(
+        "John borrows 4 items on 1 March 2021 and Mary borrows 1 item on 3 March 2021."
+    )
+    item_copies_loaned = [
+        (john, datetime(2021, 3, 1), [1, 3, 6, 8]),
+        (mary, datetime(2021, 3, 3), [9]),
+    ]
 
     for record in item_copies_loaned:
         member = record[0]
@@ -868,19 +887,21 @@ def initialise_library(members, items, item_copies, library):
             member.borrow_item(item_copy, date_borrowed)
 
     print("Showing copy items\n")
-    print(library.copy_item_str() + '\n')
+    print(library.copy_item_str() + "\n")
     print("Showing members")
-    print(library.member_str() + '\n')
+    print(library.member_str() + "\n")
 
-    print("Member data after Mary renews loan on 5 March 2021 and John returns "
-          "Copy Item 6, Dark Knight on 17 March 2021")
+    print(
+        "Member data after Mary renews loan on 5 March 2021 and John returns "
+        "Copy Item 6, Dark Knight on 17 March 2021"
+    )
 
     # John returns 'Dark Knight on 17 March 2021'
-    john.return_item('Dark Knight', datetime(2021, 3, 17))
+    john.return_item("Dark Knight", datetime(2021, 3, 17))
     # Mary renews loan on 5 March 2021
-    mary.renew('Powerpoint Presentation Tips', datetime(2021, 3, 5))
+    mary.renew("Powerpoint Presentation Tips", datetime(2021, 3, 5))
 
-    print(library.member_str() + '\n')
+    print(library.member_str() + "\n")
 
     print("John data after paying fines and he receives change $1.50")
     john.pay(2.00)
@@ -924,5 +945,5 @@ def main():
         print()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -153,10 +153,9 @@ class Book(Item):
         year_diff_from_curr = datetime.now().year - self._year_published
         # Books older than 9 years since year published has a fixed rate of 10%
         if year_diff_from_curr > 9:
-            admin_charge = 0.10 * self._cost
+            return 0.10 * self._cost
         else:
-            admin_charge = ((10 - year_diff_from_curr) / 10) * self._cost
-        return admin_charge
+            return ((10 - year_diff_from_curr) / 10) * self._cost
 
     def get_fines_per_day(self):
         """Return the fines per day for exceeding the due date"""
@@ -166,7 +165,7 @@ class Book(Item):
     def __str__(self):
         """String representation of a Book object."""
 
-        authors_temp = ', '.join(self._authors)
+        authors_temp = ", ".join(self._authors)
         return f"{super().__str__()} By {authors_temp}"
 
 
@@ -281,9 +280,9 @@ class ItemCopy:
     def __str__(self):
         """String representation of an ItemCopy object."""
 
-        return (f"CopyId: {self._copy_id} "
-                f"{self._item} "
-                f"Available: {self._available}")
+        return (
+            f"CopyId: {self._copy_id} " f"{self._item} " f"Available: {self._available}"
+        )
 
 
 # Q2(D)
@@ -310,13 +309,11 @@ class Loan:
         self._item_copy = item_copy
         # `due_date` = `loan_date` +  `Item.get_loan_duration()`
         # loan duration based on item type preset duration
-        self._due_date = (loan_date +
-                          timedelta(days=item_copy.item.get_loan_duration()))
+        self._due_date = loan_date + timedelta(days=item_copy.item.get_loan_duration())
         # :datetime:  Return date of the loan, default to [None].
         self._return_date = None
         # Setting borrowed item copy to unavailable
         item_copy.available = False
-
 
     @property
     def due_date(self):
@@ -343,7 +340,11 @@ class Loan:
         """
 
         # Default `self._return_date` is None until some returns the loan and set the return date
-        return self._return_date.strftime('%d %b %Y') if self._return_date is not None else None
+        return (
+            self._return_date.strftime("%d %b %Y")
+            if self._return_date is not None
+            else None
+        )
 
     @return_date.setter
     def return_date(self, return_date):
@@ -380,11 +381,10 @@ class Loan:
 
         """
 
-        if renew_date <= self._due_date:    # before up to the actual due date
-            self._due_date += timedelta(
-                days=self._item_copy.item.get_loan_duration())
-            return True # if renewal succesful
-        return False    # if renewal unsucessful
+        if renew_date <= self._due_date:  # before up to the actual due date
+            self._due_date += timedelta(days=self._item_copy.item.get_loan_duration())
+            return True  # if renewal succesful
+        return False  # if renewal unsucessful
 
     def get_fines(self):
         """Compute the loan fines given the number of days the loan had exceeded
@@ -406,13 +406,15 @@ class Loan:
 
         # Loans has been returned
         if self._return_date is not None:
-            days_exceed = (self._return_date - self._due_date
-                           if self._return_date > self._due_date else 0)
+            days_exceed = (
+                self._return_date - self._due_date
+                if self._return_date > self._due_date
+                else 0
+            )
             # Loan not returned on time (`due_date` == `return_date`)
             if days_exceed:
                 # fine per day exceed * days exceeded
-                fines = (
-                    days_exceed.days * self._item_copy.item.get_fines_per_day())
+                fines = days_exceed.days * self._item_copy.item.get_fines_per_day()
             else:
                 fines = 0
 
@@ -431,21 +433,25 @@ class Loan:
 
         copy_id = self._item_copy.copy_id
         title = self._item_copy.item.title
-        due_date = self._due_date.strftime('%d %b %Y')
-        return_date = self._return_date.strftime(
-            '%d %b %Y') if self._return_date is not None else 'On Loan'
+        due_date = self._due_date.strftime("%d %b %Y")
+        return_date = (
+            self._return_date.strftime("%d %b %Y")
+            if self._return_date is not None
+            else "On Loan"
+        )
 
-        return (f"Loan Copy id: {copy_id} {title}"
-                f"\n\t Due date: {due_date} "
-                f"Return on: {return_date}")
+        return (
+            f"Loan Copy id: {copy_id} {title}"
+            f"\n\t Due date: {due_date} "
+            f"Return on: {return_date}"
+        )
 
 
 def main():
     """Sequences of events to test the classes defined"""
 
     # Create a Book Item: The Road to Forget 2020 Cost: $35, authors Justin Grave, Tom Aplesson
-    b1 = Book('The Road to Forget', 2020, 35.00,
-              ['Justin Grave', 'Tom Aplesson'])
+    b1 = Book("The Road to Forget", 2020, 35.00, ["Justin Grave", "Tom Aplesson"])
     # Create a ItemCopy for the Book item
     ic1 = ItemCopy(b1)
     # print the details of the item copy
@@ -472,5 +478,5 @@ def main():
     print(l1.get_fines())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
